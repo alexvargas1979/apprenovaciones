@@ -1,0 +1,1 @@
+CREATE INDEX `idx_properties_user_id` ON `properties` (`user_id`);

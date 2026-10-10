@@ -1,0 +1,52 @@
+import assert from 'node:assert/strict';
+import {DatabaseSync} from 'node:sqlite';
+import {readFileSync,readdirSync} from 'node:fs';
+import {GET,POST} from '../app/api/accounting/route';
+import {fresh,type Property} from './model';
+import {emptyInvestment} from './investment';
+import {emptyOperations,freezeBudget} from './operations';
+import {emptyBook,accountingSummary,type Book,type Invoice,cents} from './accounting';
+import {classificationBook,lineClassification,percentageSplits,mappingFor,budgetSources} from './classification';
+const sql=new DatabaseSync(':memory:');sql.exec('PRAGMA foreign_keys=ON');for(const f of readdirSync('drizzle').filter(f=>f.endsWith('.sql')).sort())sql.exec(readFileSync('drizzle/'+f,'utf8').replaceAll('--> statement-breakpoint',''));
+let concurrent=false;
+function prepare(query:string){let args:any[]=[];return {bind(...v:any[]){args=v;return this;},async all(){return {results:sql.prepare(query).all(...args)};},async first(){return sql.prepare(query).get(...args)??null;},async run(){if(concurrent&&query.startsWith('UPDATE accounting_books')){concurrent=false;sql.prepare('UPDATE properties SET updated_at=? WHERE id=?').run('changed',p.id);}return {meta:{changes:Number(sql.prepare(query).run(...args).changes)}};}};}
+(globalThis as any).__testDb={prepare,async batch(stmts:any[]){sql.exec('BEGIN');try{const out=[];for(const s of stmts)out.push(await s.run());sql.exec('COMMIT');return out;}catch(e){sql.exec('ROLLBACK');throw e;}}};(globalThis as any).__testUid='owner-a';
+const audit={id:'base',date:'2026-09-01',at:'2026-09-01T00:00:00Z',actor:'owner-a',reason:'Base'};
+function property(name:string){const p=fresh();p.name=name;p.rehab={mode:'Manual',rate:null,manual:1000,overlapReviewed:true};p.investment=emptyInvestment(p);Object.assign(p.investment,{purchase:100000,arv:150000,purchaseDate:'2026-08-01',saleDate:'2027-02-01',costsReviewed:true});p.investment.loan.type='Efectivo';p.operations=emptyOperations();p.operations.budget=freezeBudget(p,audit);p.updatedAt=audit.at;sql.prepare('INSERT INTO properties(id,user_id,payload,updated_at) VALUES(?,?,?,?)').run(p.id,'owner-a',JSON.stringify(p),p.updatedAt);return p;}
+const p=property('Cocina A'),p2=property('Casa B'),original=JSON.stringify(p.operations?.budget),origin='https://test.example';
+sql.prepare('INSERT INTO property_documents(id,group_id,property_id,user_id,version,object_key,filename,mime,size,sha256,title,category,link_type,link_ref,note,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').run('doc','doc',p.id,'owner-a',1,'doc','invoice.pdf','application/pdf',20,'hash','Factura','Otros','','','',audit.at);
+let book:Book=emptyBook(),version='';
+function request(action:string,data:any,v=version){return new Request(origin+'/api/accounting',{method:'POST',headers:{Origin:origin},body:JSON.stringify({action,data,version:v,date:'2026-10-01',reason:'Prueba HU-41 / HU-42'})});}
+async function act(action:string,data:any,status=201){const before=JSON.stringify(book),v=version,r=await POST(request(action,data)),b=await r.json() as any;assert.equal(r.status,status,JSON.stringify(b));if(status===201){book=b.book;version=b.version;}else{const stored=await (await GET()).json() as any;assert.equal(stored.version,v);assert.equal(JSON.stringify(stored.book),before);}return b;}
+const cat={id:'plumb',code:'PL-01',name:'Plomería',description:'Tuberías y grifería',costType:'Materiales',active:true};
+await act('classification:category',cat);assert.equal(classificationBook(book).categories.length,11);
+await act('classification:category',{...cat,id:'dup',code:'pl-01'},400);
+await act('classification:category',{...cat,id:'dup',code:'NEW',name:' PLOMERÍA '},400);
+const product={id:'faucet',name:'Grifería',description:'Grifo monomando',sku:'001-ABC',unit:'unidad',categoryId:cat.id,price:100,active:true};
+await act('classification:product',product);
+await act('classification:center-template',{propertyId:p.id});await act('classification:center-template',{propertyId:p.id});assert.equal(classificationBook(book).centers.length,8);
+const kitchen=classificationBook(book).centers.find(c=>c.name==='Cocina')!,bath=classificationBook(book).centers.find(c=>c.name==='Baño principal')!;
+await act('classification:center',{...kitchen,id:'dup'},400);
+await act('classification:center',{id:'other',propertyId:p2.id,name:'Cocina',active:true});
+await act('supplier',{id:'vendor',name:'Proveedor',contact:'Ana',phone:'555',email:'',address:'',note:''});
+const inv:Invoice={declaredTotal:1080,supplierId:'vendor',number:'001',due:'2026-10-30',documentId:'doc',documentPropertyId:p.id,contractId:'',creditFor:'',duplicateReason:'',lines:[{id:'line1',propertyId:p.id,bucket:'line:1',category:'Materiales',description:'Trabajo de plomería',subtotal:1000,tax:80,retention:0,included:0,sourceLineId:''}]};
+await act('invoice',inv);const invoiceId=book.invoices[0].id;await act('approve',{id:invoiceId});const beforeSummary=accountingSummary(book,p.id,'2026-10-02');
+assert.equal(lineClassification(book,book.invoices[0].lines[0]).splits[0].name,'Sin asignar');
+const value={...lineClassification(book,inv.lines[0]),categoryId:cat.id,productId:product.id,splits:percentageSplits(1000,80,[{centerId:kitchen.id,percent:60},{centerId:bath.id,percent:40}])};
+await act('classification:line',{invoiceId,lineId:'line1',value:{...value,splits:[{centerId:'other',subtotal:1000,tax:80}]}},400);
+await act('classification:line',{invoiceId,lineId:'line1',value:{...value,splits:[{centerId:kitchen.id,subtotal:999,tax:80}]}},400);
+await act('classification:line',{invoiceId,lineId:'line1',value});assert.deepEqual(accountingSummary(book,p.id,'2026-10-02'),beforeSummary);const effective=lineClassification(book,book.invoices[0].lines[0]);assert.equal(effective.splits[0].subtotal+effective.splits[0].tax,648);assert.equal(effective.splits[1].subtotal+effective.splits[1].tax,432);assert.equal(effective.sku,'001-ABC');
+await act('classification:product',{...product,name:'Grifo nuevo',price:300});await act('classification:category',{...cat,name:'Plomería nueva'});await act('classification:center',{...kitchen,name:'Cocina renovada'});assert.equal(lineClassification(book,book.invoices[0].lines[0]).categoryName,'Plomería');assert.equal(lineClassification(book,book.invoices[0].lines[0]).productName,'Grifería');assert.equal(lineClassification(book,book.invoices[0].lines[0]).splits[0].name,'Cocina');
+const source=budgetSources(p)[0],mapping={propertyId:p.id,baseId:p.operations!.budget!.base.id,sourceKey:source.id,categoryId:cat.id,splits:percentageSplits(source.amount,0,[{centerId:kitchen.id,percent:60},{centerId:bath.id,percent:40}])};
+await act('classification:budget',mapping);await act('classification:budget',{...mapping,splits:[{centerId:bath.id,subtotal:source.amount,tax:0}]});assert.equal(classificationBook(book).budgets.length,2);assert.equal(mappingFor(book,p,source.id)?.kind,'Mapeo analítico posterior');assert.equal(JSON.parse((sql.prepare('SELECT payload FROM properties WHERE id=?').get(p.id) as any).payload).operations.budget.base.total,p.operations!.budget!.base.total);assert.equal(JSON.stringify(p.operations?.budget),original);
+await act('classification:budget',{...mapping,baseId:'fake'},400);
+const tiny=percentageSplits(.01,.01,[{centerId:kitchen.id,percent:50},{centerId:bath.id,percent:50}]);assert.equal(tiny[0].subtotal,.01);assert.equal(tiny.reduce((s,r)=>s+cents(r.tax),0),1);assert.throws(()=>percentageSplits(10,0,[{centerId:'',percent:99}]));
+const nc={...inv,number:'NC1',declaredTotal:108,creditFor:invoiceId,lines:[{...inv.lines[0],id:'credit',sourceLineId:'line1',subtotal:100,tax:8}]};await act('invoice',nc);await act('approve',{id:book.invoices.at(-1)!.id});const credit=lineClassification(book,book.invoices.at(-1)!.lines[0]);assert.equal(credit.categoryName,'Plomería');assert.equal(credit.splits[0].subtotal+credit.splits[0].tax,64.8);assert.equal(accountingSummary(book,p.id,'2026-10-02').approved,972);
+await act('classification:category',{...cat,active:false});await act('classification:line',{invoiceId,lineId:'line1',value},400);assert.equal(lineClassification(book,book.invoices[0].lines[0]).categoryName,'Plomería');
+await act('classification:category',{...cat,active:true});await act('classification:product',{...product,active:false});await act('classification:line',{invoiceId,lineId:'line1',value},400);
+await act('classification:product',product);await act('classification:center',{...bath,active:false});await act('classification:line',{invoiceId,lineId:'line1',value},400);
+assert.equal((await POST(request('classification:category',cat,''))).status,409);
+(globalThis as any).__testUid='owner-b';const other=await (await GET()).json() as any;assert.equal(classificationBook(other.book).products.length,0);assert.equal((await POST(request('classification:line',{invoiceId,lineId:'line1',value},''))).status,400);assert.equal((await POST(request('classification:budget',mapping,''))).status,400);
+(globalThis as any).__testUid=null;assert.equal((await GET()).status,401);(globalThis as any).__testUid='owner-a';
+concurrent=true;await act('classification:category',{...cat,name:'Conflicto'},409);
+console.log('HU-41/42: catálogo, snapshots, duplicados, aislamiento API, categorías/centros inactivos, migración lógica, 1080=648+432, redondeo, base inmutable, versiones, créditos y concurrencia: OK.');

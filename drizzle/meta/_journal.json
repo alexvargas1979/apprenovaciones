@@ -1,0 +1,83 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1788565329676,
+      "tag": "0000_mute_galactus",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1788565657498,
+      "tag": "0001_wise_steel_serpent",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788802798248,
+      "tag": "0002_busy_kang",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1788824710207,
+      "tag": "0003_lovely_rogue",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788825860533,
+      "tag": "0004_early_anthem",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1788865951206,
+      "tag": "0005_mighty_krista_starr",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1788993276505,
+      "tag": "0006_cheerful_master_mold",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1789311606687,
+      "tag": "0007_happy_master_mold",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1789343118892,
+      "tag": "0008_violet_leech",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1791498065052,
+      "tag": "0009_nice_baron_zemo",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1791579894465,
+      "tag": "0010_secret_mauler",
+      "breakpoints": true
+    }
+  ]
+}

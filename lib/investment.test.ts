@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import {fresh,totals,catalog} from './model';
+import {emptyInvestment,calculateFlip,maximumOffer,payment,addMonths,validateInvestment,stressProperty} from './investment';
+const near=(a:number,b:number)=>assert.ok(Math.abs(a-b)<.00001,`${a} != ${b}`);
+const p=fresh();p.values['8']=1274;p.rehab={mode:'Rápida',rate:35,manual:20000,overlapReviewed:true};
+const low=totals(p);p.rehab.rate=55;assert.equal(totals(p).mid-low.mid,25480);assert.equal(totals(p).mid,70070);
+p.rehab.mode='Manual';p.values['36']=0;p.values['37']=0;p.values['41']=0;p.costs=[{name:'Impuesto anual',amount:1200,period:'Anual'}];
+const a=emptyInvestment(p);a.purchase=100000;a.arv=200000;a.rent=2000;a.purchaseDate='2026-01-01';a.saleDate='2027-01-01';a.costsReviewed=true;a.loan={...a.loan,advance:.8,rate:.1,points:.02,rehabAdvance:0};
+a.costs=[{id:'title',name:'Título',value:1000,base:'Fijo',frequency:'Único',stage:'Adquisición',dateBasis:'Compra',date:'',endDate:''},{id:'sale',name:'Comisión',value:.06,base:'ARV %',frequency:'Único',stage:'Venta',dateBasis:'Venta',date:'',endDate:''},{id:'purchase',name:'Cierre compra',value:.01,base:'Compra %',frequency:'Único',stage:'Adquisición',dateBasis:'Compra',date:'',endDate:''}];
+validateInvestment(a);const r=calculateFlip(p,a);assert.deepEqual(r.missing,[]);near(r.interest,8000);near(r.financeFees,1600);near(r.payoff,80000);near(r.totalCost,144800);near(r.profit,55200);near(r.saleCash-r.equityUses,r.profit);
+const result=maximumOffer(p,a);assert.equal(result.status,'Estimación');near(result.offer!,Math.floor((200000-34200-30000)/1.106*100)/100);assert.ok(calculateFlip(p,a,undefined,result.offer!).profit>=30000);assert.ok(calculateFlip(p,a,undefined,result.offer!+.01).profit<30000);
+a.target={kind:'Margen sobre venta',amount:.2,rule:.7};const margin=maximumOffer(p,a);assert.ok(calculateFlip(p,a,undefined,margin.offer!).margin!>=.2);a.target.amount=1;assert.equal(maximumOffer(p,a).status,'Meta imposible');a.target.amount=.2;
+assert.equal(maximumOffer(p,{...a,arv:null}).status,'Faltan datos');assert.equal(maximumOffer(p,{...a,purchase:null}).status,'Estimación');
+const drawn={...a,loan:{...a.loan,rehabAdvance:.5,drawMonth:6}};const draw=calculateFlip(p,drawn);near(draw.drawn,10000);near(draw.interest,8000+1000*184/365);near(calculateFlip(p,{...drawn,loan:{...drawn.loan,interestBasis:'Compromiso'}}).interest,9000);
+const undrawn=calculateFlip(p,{...drawn,loan:{...drawn.loan,drawMonth:24}});assert.equal(undrawn.drawn,0);assert.equal(undrawn.payoff,80000);
+const cash=calculateFlip(p,{...a,loan:{...a.loan,type:'Efectivo'}});assert.equal(cash.interest,0);assert.equal(cash.payoff,0);near(cash.profit,64800);
+const stress={name:'Combinado',arvChange:-.1,rehabChange:.2,delay:6,rateDelta:.02,rentChange:-.1,vacancy:.2,refiChange:-.2};a.planB={...a.planB,value:200000};const stressed=calculateFlip(p,a,stress);assert.ok(stressed.profit<calculateFlip(p,a).profit);assert.ok(stressed.equityUses>calculateFlip(p,a).equityUses);assert.ok(stressed.planB.monthlyCash<calculateFlip(p,a).planB.monthlyCash);assert.equal(stressed.planB.refiValue,160000);
+near(payment(100000,.04,30),477.4152954654538);near(payment(120000,0,30),333.3333333333333);assert.equal(addMonths('2026-01-31',1),'2026-02-28');assert.equal(addMonths('2028-01-31',1),'2028-02-29');
+assert.throws(()=>validateInvestment({...a,saleDate:'2025-01-01'}));assert.throws(()=>validateInvestment({...a,costs:[{...a.costs[0],dateBasis:'Manual',date:'2027-02-01'}]}));
+const legacy=fresh();legacy.values['36']=0;legacy.rehab={mode:'Manual',manual:20000,rate:null,overlapReviewed:true};legacy.costs[6].amount=100;assert.ok(calculateFlip(legacy,a).missing.some(x=>x.includes('Conciliar')));assert.ok(!calculateFlip(legacy,{...a,excludedLegacy:[6]}).missing.some(x=>x.includes('Conciliar')));
+// Execution changes raise the forecast without adding actuals to their own estimate twice.
+p.lines[catalog[0].id]={actual:30000};assert.equal(calculateFlip(p,a).direct,30000);assert.equal(calculateFlip(p,a,{...stress,rehabChange:-.9}).direct,30000);assert.equal(totals(p).mid,20000);p.lines[catalog[0].id].actual=1000;assert.equal(calculateFlip(p,a).direct,20000);
+p.investment=a;const scenarioProperty=stressProperty(p,0);near(calculateFlip(scenarioProperty,scenarioProperty.investment!).profit,calculateFlip(p,a,a.stress[0]).profit);assert.equal(p.investment.purchase,100000);assert.equal(p.rehab.mode,'Manual');
+console.log('HU-06/HU-08/HU-09 math passed: exclusive modes, sqft example, price-dependent offer, impossible/missing targets, one-time fees/reserve, debt vs expense, draw timing, inherited exclusions, combined stress, P&I/zero rate, dates and actual-cost floor.');

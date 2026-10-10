@@ -1,0 +1,7 @@
+import {assertDocumentAccess} from '@/lib/expense-access-server';
+import {rawDb} from '@/db';import {user,fail} from '@/lib/server';import {fileBucket} from '@/lib/files';
+export async function GET(req:Request){try{const actor=await user(),id=new URL(req.url).searchParams.get('id'),uid=await assertDocumentAccess(actor,id??'',new URL(req.url).searchParams.get('grantId'));
+ const row=await rawDb().prepare('SELECT d.object_key,d.filename,d.mime,d.size FROM property_documents d JOIN properties p ON p.id=d.property_id AND p.user_id=d.user_id WHERE d.id=? AND d.user_id=?').bind(id,uid).first<{object_key:string;filename:string;mime:string;size:number}>();
+ if(!row)return Response.json({error:'Archivo no encontrado.'},{status:404});const file=await fileBucket().get(row.object_key);if(!file)return Response.json({error:'Archivo no disponible en almacenamiento.'},{status:404});
+ return new Response(file.body,{headers:{'Content-Type':row.mime,'Content-Length':String(row.size),'Content-Disposition':`${new URL(req.url).searchParams.get('preview')==='1'&&['application/pdf','image/jpeg','image/png','image/webp'].includes(row.mime)?'inline':'attachment'}; filename="archivo"; filename*=UTF-8''${encodeURIComponent(row.filename).replace(/['()*]/g,c=>'%'+c.charCodeAt(0).toString(16))}`,'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"sandbox; default-src 'none'"}});
+}catch(e){return fail(e);}}

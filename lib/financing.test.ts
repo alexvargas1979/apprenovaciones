@@ -1,0 +1,42 @@
+import assert from 'node:assert/strict';
+import {projectDebt,projectCash,newQuote,newCashPlan,validateFinancing,daysBetween,type LoanQuote} from './financing';
+import {fresh} from './model';
+import {emptyInvestment,calculateFlip,maximumOffer,stressProperty,validateInvestment} from './investment';
+const near=(a:number,b:number)=>assert.ok(Math.abs(a-b)<.000001,`${a} != ${b}`);
+const start='2026-01-01',end='2027-01-01',purchase=100000,rehab=20000,arv=200000;
+const q=newQuote(purchase,rehab,start,end);Object.assign(q,{advance:.8,maximum:100000,committed:100000,rehabReserve:20000,rate:.1,points:.02});
+q.events=[{id:'draw1',date:'2026-04-01',kind:'Draw',amount:10000,base:'USD',delayDays:0,note:'Uno'},{id:'draw2',date:'2026-07-01',kind:'Draw',amount:.5,base:'Reserva %',delayDays:30,note:'Dos'}];
+const calc=(x:LoanQuote=q,exit=end)=>projectDebt(x,purchase,rehab,arv,start,exit);
+let d=calc();assert.deepEqual(d.errors,[]);near(d.interest,8000+1000*275/365+1000*154/365);near(d.drawn,20000);near(d.payoff,100000+d.interest);near(d.reconciliation,0);near(d.interest,d.paid+d.capitalized+d.retainedUsed+d.accrued);
+near(calc({...q,interestBasis:'Compromiso'}).interest,10000);near(calc({...q,dayBasis:360}).interest,d.interest*365/360);
+const delayed=calc({...q,events:q.events.map(e=>({...e,delayDays:730}))});near(delayed.drawn,0);near(delayed.principal,80000);near(delayed.undrawn,20000);assert.ok(delayed.warnings.length);
+const amort=calc({...q,events:[...q.events,{id:'pay',date:'2026-08-01',kind:'Principal',amount:20000,base:'USD',delayDays:0,note:''}]});near(amort.amortized,20000);near(amort.principal,80000);near(amort.interest,d.interest-2000*153/365);
+const capitalized=calc({...q,settlement:'Mensual capitalizado'});assert.ok(capitalized.interest>d.interest);near(capitalized.interest,capitalized.capitalized);near(capitalized.principal,100000+capitalized.capitalized);near(capitalized.reconciliation,0);
+const retained=calc({...q,retention:12000,settlement:'Reserva retenida'});near(retained.interest,d.interest);near(retained.retainedUsed,d.interest);near(retained.retained,12000-d.interest);near(retained.accrued,0);
+const depleted=calc({...q,retention:1000,settlement:'Reserva retenida'});near(depleted.retainedUsed,1000);near(depleted.accrued,d.interest-1000);
+const paid=calc({...q,settlement:'Mensual pagado'});near(paid.paid,d.interest);near(paid.accrued,0);
+const minimum=calc({...q,rate:0,minimumInterest:5000,penalty:750,penaltyUntil:'2027-02-01'});near(minimum.interest,5000);near(minimum.penalty,750);near(minimum.fees,2750);
+const extended={...q,extensions:[{id:'x',date:'2027-04-01',fee:1200,note:'Acordada'}]};near(calc(extended,'2027-03-01').fees,3200);near(calc(extended).fees,2000);assert.ok(calc(q,'2027-03-01').errors.some(x=>x.includes('vencimiento')));
+assert.ok(calc({...q,maximum:90000}).errors.some(x=>x.includes('máximo')));assert.ok(calc({...q,ltv:.4}).errors.some(x=>x.includes('LTV')));assert.ok(calc({...q,ltc:.5}).errors.some(x=>x.includes('LTC')));assert.ok(calc({...q,committed:99999}).errors.some(x=>x.includes('concilian')));
+const official=calc({...q,official:{date:end,amount:d.payoff+111,reference:'Q-01'}});near(official.officialDifference!,111);assert.equal(calc({...q,official:{date:'2026-12-31',amount:1,reference:'Q-00'}}).officialDifference,null);
+assert.throws(()=>validateFinancing({selectedId:q.id,quotes:[{...q,rate:-1}]},undefined));assert.throws(()=>validateFinancing({selectedId:'missing',quotes:[q]},undefined));assert.throws(()=>validateFinancing({selectedId:q.id,quotes:[{...q,events:[{...q.events[0],amount:2,base:'Reserva %'}]}]},undefined));assert.throws(()=>validateFinancing(undefined,{...newCashPlan(start,end),end:'2040-01-01'}));
+const c=newCashPlan('2025-12-01','2028-01-01');c.earnest=5000;c.earnestDate='2025-12-15';c.construction=[{id:'w1',date:'2026-03-01',share:.5},{id:'w2',date:'2026-06-01',share:.5}];
+const cash=(debt=d,config=c)=>projectCash(config,start,end,purchase,rehab,arv,[],debt);
+const liquid=cash();assert.deepEqual(liquid.errors,[]);near(liquid.beforeContributions,arv-purchase-rehab-d.interest-d.fees);near(liquid.peakGap,32000);assert.equal(liquid.peakDate,'2026-03-01');
+near(liquid.ledger.flatMap(x=>x.items).filter(x=>x.kind==='Adquisición').reduce((s,x)=>s-x.amount,0),purchase);
+const contributed=cash(d,{...c,contributions:[{id:'c1',date:c.start,amount:32000,note:'Socio'}]});near(contributed.peakGap,liquid.peakGap);near(contributed.remainingGap,0);near(contributed.ending,liquid.ending+32000);
+const late=cash(d,{...c,contributions:[{id:'c1',date:end,amount:32000,note:'Tardío'}]});near(late.remainingGap,32000);
+assert.ok(cash(delayed).peakGap>liquid.peakGap);
+for(const debt of [d,amort,capitalized,retained,depleted,paid,minimum]){near(cash(debt).beforeContributions,arv-purchase-rehab-debt.interest-debt.fees);near(debt.reconciliation,0);near(debt.ledger.reduce((s,x)=>s+x.interest,0),debt.interest);}
+const financed=calc({...q,financedFees:1000,financedRetention:4000,retention:5000,maximum:105000,committed:105000,settlement:'Reserva retenida'});near(cash(financed).beforeContributions,arv-purchase-rehab-financed.interest-financed.fees);near(financed.initial,85000);
+const pending=cash(d,{...c,exit:'Refinanciamiento',refiProceeds:150000});assert.ok(!pending.ledger.flatMap(x=>x.items).some(x=>x.kind==='Conversión'&&x.amount>0));const confirmed=cash(d,{...c,exit:'Refinanciamiento',refiProceeds:150000,refiConfirmed:true,refiReference:'Confirmado'});near(confirmed.ending-pending.ending,150000);
+assert.ok(cash(d,{...c,construction:[{...c.construction[0],share:.1}]}).errors.some(x=>x.includes('100%')));
+assert.ok(cash(d,{...c,earnest:120000}).errors.some(x=>x.includes('Earnest')));
+// Complete investment integration and all stress snapshots reconcile, preserving old simple inputs.
+const p=fresh();p.rehab={mode:'Manual',manual:rehab,rate:null,overlapReviewed:true};p.values['36']=0;p.values['37']=0;p.values['41']=0;p.costs=[{name:'Seguro',amount:1200,period:'Anual'}];
+const a=emptyInvestment(p);Object.assign(a,{purchase,arv,purchaseDate:start,saleDate:end,costsReviewed:true,financing:{selectedId:q.id,quotes:[q]},cash:c});a.costs=[];p.investment=a;validateInvestment(a);
+let r=calculateFlip(p,a);assert.deepEqual(r.missing,[]);near(r.cash.beforeContributions,r.profit);near(r.saleCash-r.equityUses,r.profit);near(r.totalCost,purchase+rehab+1200+d.interest+d.fees);
+const offer=maximumOffer(p,a);assert.equal(offer.status,'Estimación');assert.ok(offer.offer!<=100000.01);assert.ok(calculateFlip(p,a,undefined,offer.offer!).profit>=a.target.amount);
+for(let i=0;i<a.stress.length;i++){const st=stressProperty(p,i),x=calculateFlip(st,st.investment!),y=calculateFlip(p,a,a.stress[i]);near(x.profit,y.profit);near(x.cash.peakGap,y.cash.peakGap);near(x.cash.beforeContributions,x.profit);assert.ok(x.missing.some(s=>s.includes('vencimiento')));}
+const before=JSON.stringify(a);calculateFlip(p,a,undefined,50000);assert.equal(JSON.stringify(a),before);
+console.log('HU-10/HU-11/HU-12 passed: terms and limits, dated debt, 360/365, multiple delayed draws, amortization, paid/retained/capitalized interest, minima, extensions, official quote separation, principal reconciliation, earnest credit, restricted reserves, dated contributions, peak gaps, 24-month horizon, conditional refi, cash/profit identity, bounded offers and stress snapshots.');
