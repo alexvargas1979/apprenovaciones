@@ -1,6 +1,6 @@
 # HU-53 a HU-68 · Migración a Supabase
 
-Fecha: 10 de octubre de 2026. Estado: HU-53 y HU-54 en desarrollo; HU-55 a HU-68 pendientes. Producción reservada; ensayos locales. No se han movido datos productivos ni cambiado la autenticación. [Avance y bloqueos](HU-53-HU-54_Inicio_migracion.md).
+Fecha: 10 de octubre de 2026. Estado: HU-53 y HU-54 en desarrollo; HU-55 en verificación local; HU-56 a HU-68 pendientes. Producción reservada; ensayos locales. No se han movido datos productivos ni cambiado la autenticación. [Avance y bloqueos](HU-53-HU-54_Inicio_migracion.md).
 
 ## Objetivo y alcance
 
@@ -75,12 +75,14 @@ Estado: **En desarrollo**. Prioridad: **P0**. Dependencias: HU-53.
 
 Como **administrador**, quiero **tener una estructura documentada y consultable**, para operar la plataforma con continuidad y control.
 
-Estado: **Pendiente**. Prioridad: **P0**. Dependencias: HU-53, HU-54.
+Estado: **En verificación**. Prioridad: **P0**. Dependencias: HU-53, HU-54.
 
-- [ ] Matriz para cada tabla origen: tabla/columna destino, tipo, clave, relación y transformación. Conservar IDs de negocio como texto salvo conversión validada; usar UUID de Auth para identidades nuevas.
-- [ ] Fechas en timestamptz con zona explícita, importes exactos numeric y reglas de redondeo/moneda; convertir JSON operativo a jsonb cuando corresponda y preservar respaldos originales como texto o archivo exacto.
-- [ ] Definir claves foráneas, unicidad e índices por propietario, propiedad, factura y fecha, incluyendo facturas distribuidas entre propiedades. No exponer libros completos a colaboradores.
-- [ ] Migraciones versionadas recrean una base vacía; diccionario de datos y diagrama aprobados técnicamente. ATTOM no se reactiva ni se importan sus credenciales.
+- [x] Matriz para cada tabla origen: tabla/columna destino, tipo, clave, relación y transformación. Conservar IDs de negocio como texto salvo conversión validada; usar UUID de Auth para identidades nuevas.
+- [x] Fechas en timestamptz con zona explícita, importes exactos numeric y reglas de redondeo/moneda; convertir JSON operativo a jsonb cuando corresponda y preservar respaldos originales como texto o archivo exacto.
+- [x] Definir claves foráneas, unicidad e índices por propietario, propiedad, factura y fecha, incluyendo facturas distribuidas entre propiedades. No exponer libros completos a colaboradores.
+- [x] Migraciones versionadas recrean una base vacía; diccionario de datos y diagrama aprobados técnicamente. ATTOM no se reactiva ni se importan sus credenciales.
+
+Evidencia técnica local: [modelo, diccionario y pruebas](HU-55_Modelo_PostgreSQL.md). Criterios implementados para el esquema del código; cierre condicionado a contrastar la exportación íntegra de HU-53 y resolver HU-54. No implica aprobación de producción.
 
 ### HU-56 · Ingresar con Supabase Auth
 

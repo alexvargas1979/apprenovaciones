@@ -1,0 +1,1082 @@
+[
+  {
+    "source_table": "properties",
+    "source_column": "id",
+    "target_table": "public.properties",
+    "target_column": "id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "properties",
+    "source_column": "user_id",
+    "target_table": "public.properties",
+    "target_column": "user_id",
+    "postgres_type": "uuid",
+    "nullable": false,
+    "transformation": "Vínculo verificado HU-57; nunca convertir el ID anterior directamente a UUID"
+  },
+  {
+    "source_table": "properties",
+    "source_column": "payload",
+    "target_table": "public.properties",
+    "target_column": "payload",
+    "postgres_type": "jsonb",
+    "nullable": false,
+    "transformation": "Parsear JSON válido; conservar original en respaldo íntegro HU-53/59"
+  },
+  {
+    "source_table": "properties",
+    "source_column": "updated_at",
+    "target_table": "public.properties",
+    "target_column": "updated_at",
+    "postgres_type": "timestamptz",
+    "nullable": false,
+    "transformation": "Exigir ISO-8601 con Z/offset; rechazar fecha sin zona; normalizar a UTC"
+  },
+  {
+    "source_table": "property_baselines",
+    "source_column": "property_id",
+    "target_table": "public.property_baselines",
+    "target_column": "property_id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "property_baselines",
+    "source_column": "user_id",
+    "target_table": "public.property_baselines",
+    "target_column": "user_id",
+    "postgres_type": "uuid",
+    "nullable": false,
+    "transformation": "Vínculo verificado HU-57; nunca convertir el ID anterior directamente a UUID"
+  },
+  {
+    "source_table": "property_baselines",
+    "source_column": "original_payload",
+    "target_table": "public.property_baselines",
+    "target_column": "original_payload",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar texto exacto sin reserializar"
+  },
+  {
+    "source_table": "property_baselines",
+    "source_column": "original_updated_at",
+    "target_table": "public.property_baselines",
+    "target_column": "original_updated_at",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar texto exacto sin reserializar"
+  },
+  {
+    "source_table": "property_baselines",
+    "source_column": "captured_at",
+    "target_table": "public.property_baselines",
+    "target_column": "captured_at",
+    "postgres_type": "timestamptz",
+    "nullable": false,
+    "transformation": "Exigir ISO-8601 con Z/offset; rechazar fecha sin zona; normalizar a UTC"
+  },
+  {
+    "source_table": "investment_projects",
+    "source_column": "property_id",
+    "target_table": "public.investment_projects",
+    "target_column": "property_id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "investment_projects",
+    "source_column": "user_id",
+    "target_table": "public.investment_projects",
+    "target_column": "user_id",
+    "postgres_type": "uuid",
+    "nullable": false,
+    "transformation": "Vínculo verificado HU-57; nunca convertir el ID anterior directamente a UUID"
+  },
+  {
+    "source_table": "investment_projects",
+    "source_column": "schema_version",
+    "target_table": "public.investment_projects",
+    "target_column": "schema_version",
+    "postgres_type": "integer",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "investment_projects",
+    "source_column": "origin",
+    "target_table": "public.investment_projects",
+    "target_column": "origin",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "investment_projects",
+    "source_column": "created_at",
+    "target_table": "public.investment_projects",
+    "target_column": "created_at",
+    "postgres_type": "timestamptz",
+    "nullable": false,
+    "transformation": "Exigir ISO-8601 con Z/offset; rechazar fecha sin zona; normalizar a UTC"
+  },
+  {
+    "source_table": "opening_balances",
+    "source_column": "(derivado)",
+    "target_table": "public.opening_balances",
+    "target_column": "user_id",
+    "postgres_type": "uuid",
+    "nullable": false,
+    "transformation": "Derivar del propietario verificado de property_baselines"
+  },
+  {
+    "source_table": "opening_balances",
+    "source_column": "property_id",
+    "target_table": "public.opening_balances",
+    "target_column": "property_id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "opening_balances",
+    "source_column": "line_id",
+    "target_table": "public.opening_balances",
+    "target_column": "line_id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "opening_balances",
+    "source_column": "amount",
+    "target_table": "public.opening_balances",
+    "target_column": "amount",
+    "postgres_type": "numeric",
+    "nullable": false,
+    "transformation": "Decimal USD exacto, máximo 2 decimales; rechazar exceso sin redondear"
+  },
+  {
+    "source_table": "opening_balances",
+    "source_column": "source",
+    "target_table": "public.opening_balances",
+    "target_column": "source",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "property_documents",
+    "source_column": "id",
+    "target_table": "public.property_documents",
+    "target_column": "id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "property_documents",
+    "source_column": "group_id",
+    "target_table": "public.property_documents",
+    "target_column": "group_id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "property_documents",
+    "source_column": "property_id",
+    "target_table": "public.property_documents",
+    "target_column": "property_id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "property_documents",
+    "source_column": "user_id",
+    "target_table": "public.property_documents",
+    "target_column": "user_id",
+    "postgres_type": "uuid",
+    "nullable": false,
+    "transformation": "Vínculo verificado HU-57; nunca convertir el ID anterior directamente a UUID"
+  },
+  {
+    "source_table": "property_documents",
+    "source_column": "version",
+    "target_table": "public.property_documents",
+    "target_column": "version",
+    "postgres_type": "integer",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "property_documents",
+    "source_column": "object_key",
+    "target_table": "public.property_documents",
+    "target_column": "object_key",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "property_documents",
+    "source_column": "filename",
+    "target_table": "public.property_documents",
+    "target_column": "filename",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "property_documents",
+    "source_column": "mime",
+    "target_table": "public.property_documents",
+    "target_column": "mime",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "property_documents",
+    "source_column": "size",
+    "target_table": "public.property_documents",
+    "target_column": "size",
+    "postgres_type": "bigint",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "property_documents",
+    "source_column": "sha256",
+    "target_table": "public.property_documents",
+    "target_column": "sha256",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "property_documents",
+    "source_column": "title",
+    "target_table": "public.property_documents",
+    "target_column": "title",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "property_documents",
+    "source_column": "category",
+    "target_table": "public.property_documents",
+    "target_column": "category",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "property_documents",
+    "source_column": "link_type",
+    "target_table": "public.property_documents",
+    "target_column": "link_type",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "property_documents",
+    "source_column": "link_ref",
+    "target_table": "public.property_documents",
+    "target_column": "link_ref",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "property_documents",
+    "source_column": "note",
+    "target_table": "public.property_documents",
+    "target_column": "note",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "property_documents",
+    "source_column": "created_at",
+    "target_table": "public.property_documents",
+    "target_column": "created_at",
+    "postgres_type": "timestamptz",
+    "nullable": false,
+    "transformation": "Exigir ISO-8601 con Z/offset; rechazar fecha sin zona; normalizar a UTC"
+  },
+  {
+    "source_table": "analysis_scenarios",
+    "source_column": "id",
+    "target_table": "public.analysis_scenarios",
+    "target_column": "id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "analysis_scenarios",
+    "source_column": "property_id",
+    "target_table": "public.analysis_scenarios",
+    "target_column": "property_id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "analysis_scenarios",
+    "source_column": "user_id",
+    "target_table": "public.analysis_scenarios",
+    "target_column": "user_id",
+    "postgres_type": "uuid",
+    "nullable": false,
+    "transformation": "Vínculo verificado HU-57; nunca convertir el ID anterior directamente a UUID"
+  },
+  {
+    "source_table": "analysis_scenarios",
+    "source_column": "label",
+    "target_table": "public.analysis_scenarios",
+    "target_column": "label",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "analysis_scenarios",
+    "source_column": "source_id",
+    "target_table": "public.analysis_scenarios",
+    "target_column": "source_id",
+    "postgres_type": "text",
+    "nullable": true,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "analysis_scenarios",
+    "source_column": "payload",
+    "target_table": "public.analysis_scenarios",
+    "target_column": "payload",
+    "postgres_type": "jsonb",
+    "nullable": false,
+    "transformation": "Parsear JSON válido; conservar original en respaldo íntegro HU-53/59"
+  },
+  {
+    "source_table": "analysis_scenarios",
+    "source_column": "created_at",
+    "target_table": "public.analysis_scenarios",
+    "target_column": "created_at",
+    "postgres_type": "timestamptz",
+    "nullable": false,
+    "transformation": "Exigir ISO-8601 con Z/offset; rechazar fecha sin zona; normalizar a UTC"
+  },
+  {
+    "source_table": "analysis_baselines",
+    "source_column": "property_id",
+    "target_table": "public.analysis_baselines",
+    "target_column": "property_id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "analysis_baselines",
+    "source_column": "user_id",
+    "target_table": "public.analysis_baselines",
+    "target_column": "user_id",
+    "postgres_type": "uuid",
+    "nullable": false,
+    "transformation": "Vínculo verificado HU-57; nunca convertir el ID anterior directamente a UUID"
+  },
+  {
+    "source_table": "analysis_baselines",
+    "source_column": "scenario_id",
+    "target_table": "public.analysis_baselines",
+    "target_column": "scenario_id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "analysis_baselines",
+    "source_column": "created_at",
+    "target_table": "public.analysis_baselines",
+    "target_column": "created_at",
+    "postgres_type": "timestamptz",
+    "nullable": false,
+    "transformation": "Exigir ISO-8601 con Z/offset; rechazar fecha sin zona; normalizar a UTC"
+  },
+  {
+    "source_table": "accounting_books",
+    "source_column": "user_id",
+    "target_table": "public.accounting_books",
+    "target_column": "user_id",
+    "postgres_type": "uuid",
+    "nullable": false,
+    "transformation": "Vínculo verificado HU-57; nunca convertir el ID anterior directamente a UUID"
+  },
+  {
+    "source_table": "accounting_books",
+    "source_column": "payload",
+    "target_table": "public.accounting_books",
+    "target_column": "payload",
+    "postgres_type": "jsonb",
+    "nullable": false,
+    "transformation": "Parsear JSON válido; conservar original en respaldo íntegro HU-53/59"
+  },
+  {
+    "source_table": "accounting_books",
+    "source_column": "updated_at",
+    "target_table": "public.accounting_books",
+    "target_column": "updated_at",
+    "postgres_type": "timestamptz",
+    "nullable": false,
+    "transformation": "Exigir ISO-8601 con Z/offset; rechazar fecha sin zona; normalizar a UTC"
+  },
+  {
+    "source_table": "audit_events",
+    "source_column": "id",
+    "target_table": "public.audit_events",
+    "target_column": "id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "audit_events",
+    "source_column": "user_id",
+    "target_table": "public.audit_events",
+    "target_column": "user_id",
+    "postgres_type": "uuid",
+    "nullable": false,
+    "transformation": "Vínculo verificado HU-57; nunca convertir el ID anterior directamente a UUID"
+  },
+  {
+    "source_table": "audit_events",
+    "source_column": "property_id",
+    "target_table": "public.audit_events",
+    "target_column": "property_id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "audit_events",
+    "source_column": "module",
+    "target_table": "public.audit_events",
+    "target_column": "module",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "audit_events",
+    "source_column": "payload",
+    "target_table": "public.audit_events",
+    "target_column": "payload",
+    "postgres_type": "jsonb",
+    "nullable": false,
+    "transformation": "Parsear JSON válido; conservar original en respaldo íntegro HU-53/59"
+  },
+  {
+    "source_table": "audit_events",
+    "source_column": "created_at",
+    "target_table": "public.audit_events",
+    "target_column": "created_at",
+    "postgres_type": "timestamptz",
+    "nullable": false,
+    "transformation": "Exigir ISO-8601 con Z/offset; rechazar fecha sin zona; normalizar a UTC"
+  },
+  {
+    "source_table": "workbook_imports",
+    "source_column": "id",
+    "target_table": "public.workbook_imports",
+    "target_column": "id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "workbook_imports",
+    "source_column": "user_id",
+    "target_table": "public.workbook_imports",
+    "target_column": "user_id",
+    "postgres_type": "uuid",
+    "nullable": false,
+    "transformation": "Vínculo verificado HU-57; nunca convertir el ID anterior directamente a UUID"
+  },
+  {
+    "source_table": "workbook_imports",
+    "source_column": "property_id",
+    "target_table": "public.workbook_imports",
+    "target_column": "property_id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "workbook_imports",
+    "source_column": "hash",
+    "target_table": "public.workbook_imports",
+    "target_column": "hash",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "workbook_imports",
+    "source_column": "payload",
+    "target_table": "public.workbook_imports",
+    "target_column": "payload",
+    "postgres_type": "jsonb",
+    "nullable": false,
+    "transformation": "Parsear JSON válido; conservar original en respaldo íntegro HU-53/59"
+  },
+  {
+    "source_table": "workbook_imports",
+    "source_column": "created_at",
+    "target_table": "public.workbook_imports",
+    "target_column": "created_at",
+    "postgres_type": "timestamptz",
+    "nullable": false,
+    "transformation": "Exigir ISO-8601 con Z/offset; rechazar fecha sin zona; normalizar a UTC"
+  },
+  {
+    "source_table": "team_members",
+    "source_column": "id",
+    "target_table": "public.team_members",
+    "target_column": "id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "team_members",
+    "source_column": "owner_id",
+    "target_table": "public.team_members",
+    "target_column": "owner_id",
+    "postgres_type": "uuid",
+    "nullable": false,
+    "transformation": "Vínculo verificado HU-57; nunca convertir el ID anterior directamente a UUID"
+  },
+  {
+    "source_table": "team_members",
+    "source_column": "member_id",
+    "target_table": "public.team_members",
+    "target_column": "member_id",
+    "postgres_type": "uuid",
+    "nullable": true,
+    "transformation": "Vínculo verificado HU-57; nunca convertir el ID anterior directamente a UUID"
+  },
+  {
+    "source_table": "team_members",
+    "source_column": "token_hash",
+    "target_table": "public.team_members",
+    "target_column": "token_hash",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "team_members",
+    "source_column": "payload",
+    "target_table": "public.team_members",
+    "target_column": "payload",
+    "postgres_type": "jsonb",
+    "nullable": false,
+    "transformation": "Parsear JSON válido; conservar original en respaldo íntegro HU-53/59"
+  },
+  {
+    "source_table": "team_members",
+    "source_column": "updated_at",
+    "target_table": "public.team_members",
+    "target_column": "updated_at",
+    "postgres_type": "timestamptz",
+    "nullable": false,
+    "transformation": "Exigir ISO-8601 con Z/offset; rechazar fecha sin zona; normalizar a UTC"
+  },
+  {
+    "source_table": "team_contributions",
+    "source_column": "id",
+    "target_table": "public.team_contributions",
+    "target_column": "id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "team_contributions",
+    "source_column": "grant_id",
+    "target_table": "public.team_contributions",
+    "target_column": "grant_id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "team_contributions",
+    "source_column": "owner_id",
+    "target_table": "public.team_contributions",
+    "target_column": "owner_id",
+    "postgres_type": "uuid",
+    "nullable": false,
+    "transformation": "Vínculo verificado HU-57; nunca convertir el ID anterior directamente a UUID"
+  },
+  {
+    "source_table": "team_contributions",
+    "source_column": "property_id",
+    "target_table": "public.team_contributions",
+    "target_column": "property_id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "team_contributions",
+    "source_column": "payload",
+    "target_table": "public.team_contributions",
+    "target_column": "payload",
+    "postgres_type": "jsonb",
+    "nullable": false,
+    "transformation": "Parsear JSON válido; conservar original en respaldo íntegro HU-53/59"
+  },
+  {
+    "source_table": "team_contributions",
+    "source_column": "created_at",
+    "target_table": "public.team_contributions",
+    "target_column": "created_at",
+    "postgres_type": "timestamptz",
+    "nullable": false,
+    "transformation": "Exigir ISO-8601 con Z/offset; rechazar fecha sin zona; normalizar a UTC"
+  },
+  {
+    "source_table": "expense_invoices",
+    "source_column": "user_id",
+    "target_table": "public.expense_invoices",
+    "target_column": "user_id",
+    "postgres_type": "uuid",
+    "nullable": false,
+    "transformation": "Vínculo verificado HU-57; nunca convertir el ID anterior directamente a UUID"
+  },
+  {
+    "source_table": "expense_invoices",
+    "source_column": "id",
+    "target_table": "public.expense_invoices",
+    "target_column": "id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "expense_invoices",
+    "source_column": "position",
+    "target_table": "public.expense_invoices",
+    "target_column": "position",
+    "postgres_type": "integer",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "expense_invoices",
+    "source_column": "request_id",
+    "target_table": "public.expense_invoices",
+    "target_column": "request_id",
+    "postgres_type": "text",
+    "nullable": true,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "expense_invoices",
+    "source_column": "payload",
+    "target_table": "public.expense_invoices",
+    "target_column": "payload",
+    "postgres_type": "jsonb",
+    "nullable": false,
+    "transformation": "Parsear JSON válido; conservar original en respaldo íntegro HU-53/59"
+  },
+  {
+    "source_table": "expense_invoices",
+    "source_column": "payload.declaredTotal",
+    "target_table": "public.expense_invoices",
+    "target_column": "declared_total",
+    "postgres_type": "numeric (generated)",
+    "nullable": false,
+    "transformation": "Proyección calculada del JSON canónico; USD exacto, máximo 2 decimales"
+  },
+  {
+    "source_table": "expense_lines",
+    "source_column": "user_id",
+    "target_table": "public.expense_lines",
+    "target_column": "user_id",
+    "postgres_type": "uuid",
+    "nullable": false,
+    "transformation": "Vínculo verificado HU-57; nunca convertir el ID anterior directamente a UUID"
+  },
+  {
+    "source_table": "expense_lines",
+    "source_column": "id",
+    "target_table": "public.expense_lines",
+    "target_column": "id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "expense_lines",
+    "source_column": "invoice_id",
+    "target_table": "public.expense_lines",
+    "target_column": "invoice_id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "expense_lines",
+    "source_column": "property_id",
+    "target_table": "public.expense_lines",
+    "target_column": "property_id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "expense_lines",
+    "source_column": "position",
+    "target_table": "public.expense_lines",
+    "target_column": "position",
+    "postgres_type": "integer",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "expense_lines",
+    "source_column": "payload",
+    "target_table": "public.expense_lines",
+    "target_column": "payload",
+    "postgres_type": "jsonb",
+    "nullable": false,
+    "transformation": "Parsear JSON válido; conservar original en respaldo íntegro HU-53/59"
+  },
+  {
+    "source_table": "expense_lines",
+    "source_column": "payload.subtotal",
+    "target_table": "public.expense_lines",
+    "target_column": "subtotal",
+    "postgres_type": "numeric (generated)",
+    "nullable": false,
+    "transformation": "Proyección calculada del JSON canónico; USD exacto, máximo 2 decimales"
+  },
+  {
+    "source_table": "expense_lines",
+    "source_column": "payload.tax",
+    "target_table": "public.expense_lines",
+    "target_column": "tax",
+    "postgres_type": "numeric (generated)",
+    "nullable": false,
+    "transformation": "Proyección calculada del JSON canónico; USD exacto, máximo 2 decimales"
+  },
+  {
+    "source_table": "expense_lines",
+    "source_column": "payload.retention",
+    "target_table": "public.expense_lines",
+    "target_column": "retention",
+    "postgres_type": "numeric (generated)",
+    "nullable": false,
+    "transformation": "Proyección calculada del JSON canónico; USD exacto, máximo 2 decimales"
+  },
+  {
+    "source_table": "expense_lines",
+    "source_column": "payload.included",
+    "target_table": "public.expense_lines",
+    "target_column": "included",
+    "postgres_type": "numeric (generated)",
+    "nullable": false,
+    "transformation": "Proyección calculada del JSON canónico; USD exacto, máximo 2 decimales"
+  },
+  {
+    "source_table": "expense_allocations",
+    "source_column": "user_id",
+    "target_table": "public.expense_allocations",
+    "target_column": "user_id",
+    "postgres_type": "uuid",
+    "nullable": false,
+    "transformation": "Vínculo verificado HU-57; nunca convertir el ID anterior directamente a UUID"
+  },
+  {
+    "source_table": "expense_allocations",
+    "source_column": "line_id",
+    "target_table": "public.expense_allocations",
+    "target_column": "line_id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "expense_allocations",
+    "source_column": "position",
+    "target_table": "public.expense_allocations",
+    "target_column": "position",
+    "postgres_type": "integer",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "expense_allocations",
+    "source_column": "payload",
+    "target_table": "public.expense_allocations",
+    "target_column": "payload",
+    "postgres_type": "jsonb",
+    "nullable": false,
+    "transformation": "Parsear JSON válido; conservar original en respaldo íntegro HU-53/59"
+  },
+  {
+    "source_table": "expense_allocations",
+    "source_column": "payload.subtotal",
+    "target_table": "public.expense_allocations",
+    "target_column": "subtotal",
+    "postgres_type": "numeric (generated)",
+    "nullable": false,
+    "transformation": "Proyección calculada del JSON canónico; USD exacto, máximo 2 decimales"
+  },
+  {
+    "source_table": "expense_allocations",
+    "source_column": "payload.tax",
+    "target_table": "public.expense_allocations",
+    "target_column": "tax",
+    "postgres_type": "numeric (generated)",
+    "nullable": false,
+    "transformation": "Proyección calculada del JSON canónico; USD exacto, máximo 2 decimales"
+  },
+  {
+    "source_table": "expense_classification_history",
+    "source_column": "user_id",
+    "target_table": "public.expense_classification_history",
+    "target_column": "user_id",
+    "postgres_type": "uuid",
+    "nullable": false,
+    "transformation": "Vínculo verificado HU-57; nunca convertir el ID anterior directamente a UUID"
+  },
+  {
+    "source_table": "expense_classification_history",
+    "source_column": "id",
+    "target_table": "public.expense_classification_history",
+    "target_column": "id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "expense_classification_history",
+    "source_column": "position",
+    "target_table": "public.expense_classification_history",
+    "target_column": "position",
+    "postgres_type": "integer",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "expense_classification_history",
+    "source_column": "payload",
+    "target_table": "public.expense_classification_history",
+    "target_column": "payload",
+    "postgres_type": "jsonb",
+    "nullable": false,
+    "transformation": "Parsear JSON válido; conservar original en respaldo íntegro HU-53/59"
+  },
+  {
+    "source_table": "expense_legacy_backup",
+    "source_column": "user_id",
+    "target_table": "public.expense_legacy_backup",
+    "target_column": "user_id",
+    "postgres_type": "uuid",
+    "nullable": false,
+    "transformation": "Vínculo verificado HU-57; nunca convertir el ID anterior directamente a UUID"
+  },
+  {
+    "source_table": "expense_legacy_backup",
+    "source_column": "payload",
+    "target_table": "public.expense_legacy_backup",
+    "target_column": "payload",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar texto exacto sin reserializar"
+  },
+  {
+    "source_table": "expense_legacy_backup",
+    "source_column": "version",
+    "target_table": "public.expense_legacy_backup",
+    "target_column": "version",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "expense_legacy_backup",
+    "source_column": "created_at",
+    "target_table": "public.expense_legacy_backup",
+    "target_column": "created_at",
+    "postgres_type": "timestamptz",
+    "nullable": false,
+    "transformation": "Exigir ISO-8601 con Z/offset; rechazar fecha sin zona; normalizar a UTC"
+  },
+  {
+    "source_table": "expense_drafts",
+    "source_column": "user_id",
+    "target_table": "public.expense_drafts",
+    "target_column": "user_id",
+    "postgres_type": "uuid",
+    "nullable": false,
+    "transformation": "Vínculo verificado HU-57; nunca convertir el ID anterior directamente a UUID"
+  },
+  {
+    "source_table": "expense_drafts",
+    "source_column": "id",
+    "target_table": "public.expense_drafts",
+    "target_column": "id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "expense_drafts",
+    "source_column": "property_id",
+    "target_table": "public.expense_drafts",
+    "target_column": "property_id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "expense_drafts",
+    "source_column": "status",
+    "target_table": "public.expense_drafts",
+    "target_column": "status",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "expense_drafts",
+    "source_column": "payload",
+    "target_table": "public.expense_drafts",
+    "target_column": "payload",
+    "postgres_type": "jsonb",
+    "nullable": false,
+    "transformation": "Parsear JSON válido; conservar original en respaldo íntegro HU-53/59"
+  },
+  {
+    "source_table": "expense_drafts",
+    "source_column": "updated_at",
+    "target_table": "public.expense_drafts",
+    "target_column": "updated_at",
+    "postgres_type": "timestamptz",
+    "nullable": false,
+    "transformation": "Exigir ISO-8601 con Z/offset; rechazar fecha sin zona; normalizar a UTC"
+  },
+  {
+    "source_table": "expense_reports",
+    "source_column": "user_id",
+    "target_table": "public.expense_reports",
+    "target_column": "user_id",
+    "postgres_type": "uuid",
+    "nullable": false,
+    "transformation": "Vínculo verificado HU-57; nunca convertir el ID anterior directamente a UUID"
+  },
+  {
+    "source_table": "expense_reports",
+    "source_column": "id",
+    "target_table": "public.expense_reports",
+    "target_column": "id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "expense_reports",
+    "source_column": "property_id",
+    "target_table": "public.expense_reports",
+    "target_column": "property_id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "expense_reports",
+    "source_column": "payload",
+    "target_table": "public.expense_reports",
+    "target_column": "payload",
+    "postgres_type": "jsonb",
+    "nullable": false,
+    "transformation": "Parsear JSON válido; conservar original en respaldo íntegro HU-53/59"
+  },
+  {
+    "source_table": "expense_reports",
+    "source_column": "created_at",
+    "target_table": "public.expense_reports",
+    "target_column": "created_at",
+    "postgres_type": "timestamptz",
+    "nullable": false,
+    "transformation": "Exigir ISO-8601 con Z/offset; rechazar fecha sin zona; normalizar a UTC"
+  },
+  {
+    "source_table": "property_deletions",
+    "source_column": "id",
+    "target_table": "public.property_deletions",
+    "target_column": "id",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "property_deletions",
+    "source_column": "user_id",
+    "target_table": "public.property_deletions",
+    "target_column": "user_id",
+    "postgres_type": "uuid",
+    "nullable": false,
+    "transformation": "Vínculo verificado HU-57; nunca convertir el ID anterior directamente a UUID"
+  },
+  {
+    "source_table": "property_deletions",
+    "source_column": "name",
+    "target_table": "public.property_deletions",
+    "target_column": "name",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "property_deletions",
+    "source_column": "version",
+    "target_table": "public.property_deletions",
+    "target_column": "version",
+    "postgres_type": "text",
+    "nullable": false,
+    "transformation": "Conservar valor"
+  },
+  {
+    "source_table": "property_deletions",
+    "source_column": "deleted_at",
+    "target_table": "public.property_deletions",
+    "target_column": "deleted_at",
+    "postgres_type": "timestamptz",
+    "nullable": false,
+    "transformation": "Exigir ISO-8601 con Z/offset; rechazar fecha sin zona; normalizar a UTC"
+  },
+  {
+    "source_table": "property_deletions",
+    "source_column": "object_keys",
+    "target_table": "public.property_deletions",
+    "target_column": "object_keys",
+    "postgres_type": "jsonb",
+    "nullable": false,
+    "transformation": "Parsear JSON válido; conservar original en respaldo íntegro HU-53/59"
+  }
+]

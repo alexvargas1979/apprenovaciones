@@ -1,0 +1,487 @@
+[
+  {
+    "table_name": "accounting_books",
+    "name": "accounting_books_payload_check",
+    "definition": "CHECK ((jsonb_typeof(payload) = 'object'::text))"
+  },
+  {
+    "table_name": "accounting_books",
+    "name": "accounting_books_pkey",
+    "definition": "PRIMARY KEY (user_id)"
+  },
+  {
+    "table_name": "accounting_books",
+    "name": "accounting_books_user_id_fkey",
+    "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id)"
+  },
+  {
+    "table_name": "analysis_baselines",
+    "name": "analysis_baselines_pkey",
+    "definition": "PRIMARY KEY (property_id)"
+  },
+  {
+    "table_name": "analysis_baselines",
+    "name": "analysis_baselines_user_id_fkey",
+    "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id)"
+  },
+  {
+    "table_name": "analysis_baselines",
+    "name": "analysis_baselines_user_id_property_id_fkey",
+    "definition": "FOREIGN KEY (user_id, property_id) REFERENCES properties(user_id, id)"
+  },
+  {
+    "table_name": "analysis_baselines",
+    "name": "analysis_baselines_user_id_property_id_scenario_id_fkey",
+    "definition": "FOREIGN KEY (user_id, property_id, scenario_id) REFERENCES analysis_scenarios(user_id, property_id, id)"
+  },
+  {
+    "table_name": "analysis_scenarios",
+    "name": "analysis_scenarios_payload_check",
+    "definition": "CHECK ((jsonb_typeof(payload) = 'object'::text))"
+  },
+  {
+    "table_name": "analysis_scenarios",
+    "name": "analysis_scenarios_pkey",
+    "definition": "PRIMARY KEY (id)"
+  },
+  {
+    "table_name": "analysis_scenarios",
+    "name": "analysis_scenarios_user_id_fkey",
+    "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id)"
+  },
+  {
+    "table_name": "analysis_scenarios",
+    "name": "analysis_scenarios_user_id_id_key",
+    "definition": "UNIQUE (user_id, id)"
+  },
+  {
+    "table_name": "analysis_scenarios",
+    "name": "analysis_scenarios_user_id_property_id_fkey",
+    "definition": "FOREIGN KEY (user_id, property_id) REFERENCES properties(user_id, id)"
+  },
+  {
+    "table_name": "analysis_scenarios",
+    "name": "analysis_scenarios_user_id_property_id_id_key",
+    "definition": "UNIQUE (user_id, property_id, id)"
+  },
+  {
+    "table_name": "audit_events",
+    "name": "audit_events_payload_check",
+    "definition": "CHECK ((jsonb_typeof(payload) = 'object'::text))"
+  },
+  {
+    "table_name": "audit_events",
+    "name": "audit_events_pkey",
+    "definition": "PRIMARY KEY (id)"
+  },
+  {
+    "table_name": "audit_events",
+    "name": "audit_events_user_id_fkey",
+    "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id)"
+  },
+  {
+    "table_name": "expense_allocations",
+    "name": "expense_allocations_payload_check",
+    "definition": "CHECK ((jsonb_typeof(payload) = 'object'::text))"
+  },
+  {
+    "table_name": "expense_allocations",
+    "name": "expense_allocations_pkey",
+    "definition": "PRIMARY KEY (user_id, line_id, \"position\")"
+  },
+  {
+    "table_name": "expense_allocations",
+    "name": "expense_allocations_position_check",
+    "definition": "CHECK ((\"position\" >= 0))"
+  },
+  {
+    "table_name": "expense_allocations",
+    "name": "expense_allocations_subtotal_check",
+    "definition": "CHECK (((subtotal >= (0)::numeric) AND (subtotal <= (1000000000)::numeric) AND (scale(subtotal) <= 2)))"
+  },
+  {
+    "table_name": "expense_allocations",
+    "name": "expense_allocations_tax_check",
+    "definition": "CHECK (((tax >= (0)::numeric) AND (tax <= (1000000000)::numeric) AND (scale(tax) <= 2)))"
+  },
+  {
+    "table_name": "expense_allocations",
+    "name": "expense_allocations_user_id_fkey",
+    "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id)"
+  },
+  {
+    "table_name": "expense_allocations",
+    "name": "expense_allocations_user_id_line_id_fkey",
+    "definition": "FOREIGN KEY (user_id, line_id) REFERENCES expense_lines(user_id, id)"
+  },
+  {
+    "table_name": "expense_classification_history",
+    "name": "expense_classification_history_payload_check",
+    "definition": "CHECK ((jsonb_typeof(payload) = 'object'::text))"
+  },
+  {
+    "table_name": "expense_classification_history",
+    "name": "expense_classification_history_pkey",
+    "definition": "PRIMARY KEY (user_id, id)"
+  },
+  {
+    "table_name": "expense_classification_history",
+    "name": "expense_classification_history_position_check",
+    "definition": "CHECK ((\"position\" >= 0))"
+  },
+  {
+    "table_name": "expense_classification_history",
+    "name": "expense_classification_history_user_id_fkey",
+    "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id)"
+  },
+  {
+    "table_name": "expense_drafts",
+    "name": "expense_drafts_payload_check",
+    "definition": "CHECK ((jsonb_typeof(payload) = 'object'::text))"
+  },
+  {
+    "table_name": "expense_drafts",
+    "name": "expense_drafts_pkey",
+    "definition": "PRIMARY KEY (user_id, id)"
+  },
+  {
+    "table_name": "expense_drafts",
+    "name": "expense_drafts_status_check",
+    "definition": "CHECK ((status = ANY (ARRAY['Pendiente de clasificar'::text, 'Borrador'::text, 'En revisión'::text, 'Rechazado'::text])))"
+  },
+  {
+    "table_name": "expense_drafts",
+    "name": "expense_drafts_user_id_fkey",
+    "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id)"
+  },
+  {
+    "table_name": "expense_drafts",
+    "name": "expense_drafts_user_id_property_id_fkey",
+    "definition": "FOREIGN KEY (user_id, property_id) REFERENCES properties(user_id, id)"
+  },
+  {
+    "table_name": "expense_invoices",
+    "name": "expense_invoices_declared_total_check",
+    "definition": "CHECK (((declared_total >= (0)::numeric) AND (declared_total <= (1000000000)::numeric) AND (scale(declared_total) <= 2)))"
+  },
+  {
+    "table_name": "expense_invoices",
+    "name": "expense_invoices_payload_check",
+    "definition": "CHECK ((jsonb_typeof(payload) = 'object'::text))"
+  },
+  {
+    "table_name": "expense_invoices",
+    "name": "expense_invoices_pkey",
+    "definition": "PRIMARY KEY (user_id, id)"
+  },
+  {
+    "table_name": "expense_invoices",
+    "name": "expense_invoices_position_check",
+    "definition": "CHECK ((\"position\" >= 0))"
+  },
+  {
+    "table_name": "expense_invoices",
+    "name": "expense_invoices_user_id_fkey",
+    "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id)"
+  },
+  {
+    "table_name": "expense_invoices",
+    "name": "expense_invoices_user_id_request_id_key",
+    "definition": "UNIQUE (user_id, request_id)"
+  },
+  {
+    "table_name": "expense_legacy_backup",
+    "name": "expense_legacy_backup_pkey",
+    "definition": "PRIMARY KEY (user_id)"
+  },
+  {
+    "table_name": "expense_legacy_backup",
+    "name": "expense_legacy_backup_user_id_fkey",
+    "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id)"
+  },
+  {
+    "table_name": "expense_lines",
+    "name": "expense_lines_included_check",
+    "definition": "CHECK (((included >= (0)::numeric) AND (included <= (1000000000)::numeric) AND (scale(included) <= 2)))"
+  },
+  {
+    "table_name": "expense_lines",
+    "name": "expense_lines_payload_check",
+    "definition": "CHECK ((jsonb_typeof(payload) = 'object'::text))"
+  },
+  {
+    "table_name": "expense_lines",
+    "name": "expense_lines_pkey",
+    "definition": "PRIMARY KEY (user_id, id)"
+  },
+  {
+    "table_name": "expense_lines",
+    "name": "expense_lines_position_check",
+    "definition": "CHECK ((\"position\" >= 0))"
+  },
+  {
+    "table_name": "expense_lines",
+    "name": "expense_lines_retention_check",
+    "definition": "CHECK (((retention >= (0)::numeric) AND (retention <= (1000000000)::numeric) AND (scale(retention) <= 2)))"
+  },
+  {
+    "table_name": "expense_lines",
+    "name": "expense_lines_subtotal_check",
+    "definition": "CHECK (((subtotal >= (0)::numeric) AND (subtotal <= (1000000000)::numeric) AND (scale(subtotal) <= 2)))"
+  },
+  {
+    "table_name": "expense_lines",
+    "name": "expense_lines_tax_check",
+    "definition": "CHECK (((tax >= (0)::numeric) AND (tax <= (1000000000)::numeric) AND (scale(tax) <= 2)))"
+  },
+  {
+    "table_name": "expense_lines",
+    "name": "expense_lines_user_id_fkey",
+    "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id)"
+  },
+  {
+    "table_name": "expense_lines",
+    "name": "expense_lines_user_id_invoice_id_fkey",
+    "definition": "FOREIGN KEY (user_id, invoice_id) REFERENCES expense_invoices(user_id, id)"
+  },
+  {
+    "table_name": "expense_lines",
+    "name": "expense_lines_user_id_property_id_fkey",
+    "definition": "FOREIGN KEY (user_id, property_id) REFERENCES properties(user_id, id)"
+  },
+  {
+    "table_name": "expense_reports",
+    "name": "expense_reports_payload_check",
+    "definition": "CHECK ((jsonb_typeof(payload) = 'object'::text))"
+  },
+  {
+    "table_name": "expense_reports",
+    "name": "expense_reports_pkey",
+    "definition": "PRIMARY KEY (user_id, id)"
+  },
+  {
+    "table_name": "expense_reports",
+    "name": "expense_reports_user_id_fkey",
+    "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id)"
+  },
+  {
+    "table_name": "expense_reports",
+    "name": "expense_reports_user_id_property_id_fkey",
+    "definition": "FOREIGN KEY (user_id, property_id) REFERENCES properties(user_id, id)"
+  },
+  {
+    "table_name": "investment_projects",
+    "name": "investment_projects_pkey",
+    "definition": "PRIMARY KEY (property_id)"
+  },
+  {
+    "table_name": "investment_projects",
+    "name": "investment_projects_schema_version_check",
+    "definition": "CHECK ((schema_version > 0))"
+  },
+  {
+    "table_name": "investment_projects",
+    "name": "investment_projects_user_id_fkey",
+    "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id)"
+  },
+  {
+    "table_name": "investment_projects",
+    "name": "investment_projects_user_id_property_id_fkey",
+    "definition": "FOREIGN KEY (user_id, property_id) REFERENCES properties(user_id, id)"
+  },
+  {
+    "table_name": "opening_balances",
+    "name": "opening_balances_amount_check",
+    "definition": "CHECK (((amount >= (0)::numeric) AND (amount <= (1000000000)::numeric) AND (scale(amount) <= 2)))"
+  },
+  {
+    "table_name": "opening_balances",
+    "name": "opening_balances_pkey",
+    "definition": "PRIMARY KEY (property_id, line_id)"
+  },
+  {
+    "table_name": "opening_balances",
+    "name": "opening_balances_user_id_fkey",
+    "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id)"
+  },
+  {
+    "table_name": "opening_balances",
+    "name": "opening_balances_user_id_property_id_fkey",
+    "definition": "FOREIGN KEY (user_id, property_id) REFERENCES property_baselines(user_id, property_id)"
+  },
+  {
+    "table_name": "properties",
+    "name": "properties_payload_check",
+    "definition": "CHECK ((jsonb_typeof(payload) = 'object'::text))"
+  },
+  {
+    "table_name": "properties",
+    "name": "properties_pkey",
+    "definition": "PRIMARY KEY (id)"
+  },
+  {
+    "table_name": "properties",
+    "name": "properties_user_id_fkey",
+    "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id)"
+  },
+  {
+    "table_name": "properties",
+    "name": "properties_user_id_id_key",
+    "definition": "UNIQUE (user_id, id)"
+  },
+  {
+    "table_name": "property_baselines",
+    "name": "property_baselines_pkey",
+    "definition": "PRIMARY KEY (property_id)"
+  },
+  {
+    "table_name": "property_baselines",
+    "name": "property_baselines_user_id_fkey",
+    "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id)"
+  },
+  {
+    "table_name": "property_baselines",
+    "name": "property_baselines_user_id_property_id_fkey",
+    "definition": "FOREIGN KEY (user_id, property_id) REFERENCES properties(user_id, id)"
+  },
+  {
+    "table_name": "property_baselines",
+    "name": "property_baselines_user_id_property_id_key",
+    "definition": "UNIQUE (user_id, property_id)"
+  },
+  {
+    "table_name": "property_deletions",
+    "name": "property_deletions_object_keys_check",
+    "definition": "CHECK ((jsonb_typeof(object_keys) = 'array'::text))"
+  },
+  {
+    "table_name": "property_deletions",
+    "name": "property_deletions_pkey",
+    "definition": "PRIMARY KEY (id)"
+  },
+  {
+    "table_name": "property_deletions",
+    "name": "property_deletions_user_id_fkey",
+    "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id)"
+  },
+  {
+    "table_name": "property_documents",
+    "name": "property_documents_object_key_key",
+    "definition": "UNIQUE (object_key)"
+  },
+  {
+    "table_name": "property_documents",
+    "name": "property_documents_pkey",
+    "definition": "PRIMARY KEY (id)"
+  },
+  {
+    "table_name": "property_documents",
+    "name": "property_documents_sha256_check",
+    "definition": "CHECK ((sha256 ~ '^[0-9a-f]{64}$'::text))"
+  },
+  {
+    "table_name": "property_documents",
+    "name": "property_documents_size_check",
+    "definition": "CHECK (((size >= 0) AND (size <= 10485760)))"
+  },
+  {
+    "table_name": "property_documents",
+    "name": "property_documents_user_id_fkey",
+    "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id)"
+  },
+  {
+    "table_name": "property_documents",
+    "name": "property_documents_user_id_group_id_version_key",
+    "definition": "UNIQUE (user_id, group_id, version)"
+  },
+  {
+    "table_name": "property_documents",
+    "name": "property_documents_user_id_property_id_fkey",
+    "definition": "FOREIGN KEY (user_id, property_id) REFERENCES properties(user_id, id)"
+  },
+  {
+    "table_name": "property_documents",
+    "name": "property_documents_version_check",
+    "definition": "CHECK ((version > 0))"
+  },
+  {
+    "table_name": "team_contributions",
+    "name": "team_contributions_owner_id_fkey",
+    "definition": "FOREIGN KEY (owner_id) REFERENCES auth.users(id)"
+  },
+  {
+    "table_name": "team_contributions",
+    "name": "team_contributions_owner_id_grant_id_fkey",
+    "definition": "FOREIGN KEY (owner_id, grant_id) REFERENCES team_members(owner_id, id)"
+  },
+  {
+    "table_name": "team_contributions",
+    "name": "team_contributions_owner_id_property_id_fkey",
+    "definition": "FOREIGN KEY (owner_id, property_id) REFERENCES properties(user_id, id)"
+  },
+  {
+    "table_name": "team_contributions",
+    "name": "team_contributions_payload_check",
+    "definition": "CHECK ((jsonb_typeof(payload) = 'object'::text))"
+  },
+  {
+    "table_name": "team_contributions",
+    "name": "team_contributions_pkey",
+    "definition": "PRIMARY KEY (id)"
+  },
+  {
+    "table_name": "team_members",
+    "name": "team_members_member_id_fkey",
+    "definition": "FOREIGN KEY (member_id) REFERENCES auth.users(id)"
+  },
+  {
+    "table_name": "team_members",
+    "name": "team_members_owner_id_fkey",
+    "definition": "FOREIGN KEY (owner_id) REFERENCES auth.users(id)"
+  },
+  {
+    "table_name": "team_members",
+    "name": "team_members_owner_id_id_key",
+    "definition": "UNIQUE (owner_id, id)"
+  },
+  {
+    "table_name": "team_members",
+    "name": "team_members_payload_check",
+    "definition": "CHECK ((jsonb_typeof(payload) = 'object'::text))"
+  },
+  {
+    "table_name": "team_members",
+    "name": "team_members_pkey",
+    "definition": "PRIMARY KEY (id)"
+  },
+  {
+    "table_name": "team_members",
+    "name": "team_members_token_hash_key",
+    "definition": "UNIQUE (token_hash)"
+  },
+  {
+    "table_name": "workbook_imports",
+    "name": "workbook_imports_payload_check",
+    "definition": "CHECK ((jsonb_typeof(payload) = 'object'::text))"
+  },
+  {
+    "table_name": "workbook_imports",
+    "name": "workbook_imports_pkey",
+    "definition": "PRIMARY KEY (id)"
+  },
+  {
+    "table_name": "workbook_imports",
+    "name": "workbook_imports_user_id_fkey",
+    "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id)"
+  },
+  {
+    "table_name": "workbook_imports",
+    "name": "workbook_imports_user_id_hash_key",
+    "definition": "UNIQUE (user_id, hash)"
+  },
+  {
+    "table_name": "workbook_imports",
+    "name": "workbook_imports_user_id_property_id_fkey",
+    "definition": "FOREIGN KEY (user_id, property_id) REFERENCES properties(user_id, id)"
+  }
+]
