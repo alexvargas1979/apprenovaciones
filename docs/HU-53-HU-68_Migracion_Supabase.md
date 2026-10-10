@@ -1,6 +1,6 @@
 # HU-53 a HU-68 · Migración a Supabase
 
-Fecha: 10 de octubre de 2026. Estado: planificación; todas las historias pendientes. No se han creado recursos, movido datos ni cambiado la autenticación.
+Fecha: 10 de octubre de 2026. Estado: HU-53 y HU-54 en desarrollo; HU-55 a HU-68 pendientes. Producción reservada; ensayos locales. No se han movido datos productivos ni cambiado la autenticación. [Avance y bloqueos](HU-53-HU-54_Inicio_migracion.md).
 
 ## Objetivo y alcance
 
@@ -53,7 +53,7 @@ P0 significa necesario antes del corte; P1 es entrega operativa, también requer
 
 Como **administrador**, quiero **conocer y respaldar datos, usuarios y archivos antes de migrar**, para operar la plataforma con continuidad y control.
 
-Estado: **Pendiente**. Prioridad: **P0**. Dependencias: Ninguna.
+Estado: **En desarrollo**. Prioridad: **P0**. Dependencias: Ninguna.
 
 - [ ] Inventario separado de producción (última publicación confirmada v14) y código local/GitHub: tablas, filas, versiones, propietarios, archivos y bytes. Las 20 tablas del esquema local no se asumen iguales a producción.
 - [ ] Exportación autorizada de D1 y R2 con manifiesto, fecha de corte y hashes; restauración de una muestra en entorno aislado.
@@ -64,7 +64,7 @@ Estado: **Pendiente**. Prioridad: **P0**. Dependencias: Ninguna.
 
 Como **administrador**, quiero **disponer de un entorno de prueba y una ruta viable de despliegue**, para operar la plataforma con continuidad y control.
 
-Estado: **Pendiente**. Prioridad: **P0**. Dependencias: HU-53.
+Estado: **En desarrollo**. Prioridad: **P0**. Dependencias: HU-53.
 
 - [ ] Registrar proyecto, región, ambientes de prueba/producción y responsable; confirmar plan, límites y costos antes de contratar recursos.
 - [ ] Probar conexión HTTPS desde el runtime elegido, cookies, callback y refresco de Auth. Mantener React/TypeScript y comprobar Vinext; no asumir compatibilidad completa por parecer Next.js.

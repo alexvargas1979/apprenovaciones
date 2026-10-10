@@ -38,3 +38,12 @@ next-env.d.ts
 /work/
 
 *.tsbuildinfo
+
+# Migration exports and runtime state (never commit real records)
+/migration-private/
+/supabase/.temp/
+/supabase/.branches/
+__pycache__/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm

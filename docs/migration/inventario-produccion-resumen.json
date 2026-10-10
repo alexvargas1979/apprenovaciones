@@ -1,0 +1,251 @@
+{
+  "date": "2026-10-10",
+  "source": "Sites D1 DB (lectura limitada, no respaldo)",
+  "production_export_complete": false,
+  "excluded_retired_tables": [
+    "settings",
+    "attom_receipts"
+  ],
+  "tables": [
+    {
+      "table": "accounting_books",
+      "rows": 0,
+      "complete": true,
+      "projection": {
+        "truncated": false,
+        "truncated_values": 0,
+        "omitted_columns": 0,
+        "omitted_rows": 0,
+        "next_offset": null
+      },
+      "columns": [
+        "user_id",
+        "payload",
+        "updated_at"
+      ]
+    },
+    {
+      "table": "analysis_baselines",
+      "rows": 0,
+      "complete": true,
+      "projection": {
+        "truncated": false,
+        "truncated_values": 0,
+        "omitted_columns": 0,
+        "omitted_rows": 0,
+        "next_offset": null
+      },
+      "columns": [
+        "property_id",
+        "user_id",
+        "scenario_id",
+        "created_at"
+      ]
+    },
+    {
+      "table": "analysis_scenarios",
+      "rows": 0,
+      "complete": true,
+      "projection": {
+        "truncated": false,
+        "truncated_values": 0,
+        "omitted_columns": 0,
+        "omitted_rows": 0,
+        "next_offset": null
+      },
+      "columns": [
+        "id",
+        "property_id",
+        "user_id",
+        "label",
+        "source_id",
+        "payload",
+        "created_at"
+      ]
+    },
+    {
+      "table": "audit_events",
+      "rows": 2,
+      "complete": false,
+      "projection": {
+        "truncated": true,
+        "truncated_values": 1,
+        "omitted_columns": 0,
+        "omitted_rows": 0,
+        "next_offset": null
+      },
+      "columns": [
+        "id",
+        "user_id",
+        "property_id",
+        "module",
+        "payload",
+        "created_at"
+      ]
+    },
+    {
+      "table": "investment_projects",
+      "rows": 2,
+      "complete": true,
+      "projection": {
+        "truncated": false,
+        "truncated_values": 0,
+        "omitted_columns": 0,
+        "omitted_rows": 0,
+        "next_offset": null
+      },
+      "columns": [
+        "property_id",
+        "user_id",
+        "schema_version",
+        "origin",
+        "created_at"
+      ]
+    },
+    {
+      "table": "opening_balances",
+      "rows": 0,
+      "complete": true,
+      "projection": {
+        "truncated": false,
+        "truncated_values": 0,
+        "omitted_columns": 0,
+        "omitted_rows": 0,
+        "next_offset": null
+      },
+      "columns": [
+        "property_id",
+        "line_id",
+        "amount",
+        "source"
+      ]
+    },
+    {
+      "table": "properties",
+      "rows": 2,
+      "complete": false,
+      "projection": {
+        "truncated": true,
+        "truncated_values": 2,
+        "omitted_columns": 0,
+        "omitted_rows": 0,
+        "next_offset": null
+      },
+      "columns": [
+        "id",
+        "user_id",
+        "payload",
+        "updated_at"
+      ]
+    },
+    {
+      "table": "property_baselines",
+      "rows": 1,
+      "complete": true,
+      "projection": {
+        "truncated": false,
+        "truncated_values": 0,
+        "omitted_columns": 0,
+        "omitted_rows": 0,
+        "next_offset": null
+      },
+      "columns": [
+        "property_id",
+        "user_id",
+        "original_payload",
+        "original_updated_at",
+        "captured_at"
+      ]
+    },
+    {
+      "table": "property_documents",
+      "rows": 1,
+      "complete": true,
+      "projection": {
+        "truncated": false,
+        "truncated_values": 0,
+        "omitted_columns": 0,
+        "omitted_rows": 0,
+        "next_offset": null
+      },
+      "columns": [
+        "id",
+        "group_id",
+        "property_id",
+        "user_id",
+        "version",
+        "object_key",
+        "filename",
+        "mime",
+        "size",
+        "sha256",
+        "title",
+        "category",
+        "link_type",
+        "link_ref",
+        "note",
+        "created_at"
+      ]
+    },
+    {
+      "table": "team_contributions",
+      "rows": 0,
+      "complete": true,
+      "projection": {
+        "truncated": false,
+        "truncated_values": 0,
+        "omitted_columns": 0,
+        "omitted_rows": 0,
+        "next_offset": null
+      },
+      "columns": [
+        "id",
+        "grant_id",
+        "owner_id",
+        "property_id",
+        "payload",
+        "created_at"
+      ]
+    },
+    {
+      "table": "team_members",
+      "rows": 0,
+      "complete": true,
+      "projection": {
+        "truncated": false,
+        "truncated_values": 0,
+        "omitted_columns": 0,
+        "omitted_rows": 0,
+        "next_offset": null
+      },
+      "columns": [
+        "id",
+        "owner_id",
+        "member_id",
+        "token_hash",
+        "payload",
+        "updated_at"
+      ]
+    },
+    {
+      "table": "workbook_imports",
+      "rows": 0,
+      "complete": true,
+      "projection": {
+        "truncated": false,
+        "truncated_values": 0,
+        "omitted_columns": 0,
+        "omitted_rows": 0,
+        "next_offset": null
+      },
+      "columns": [
+        "id",
+        "user_id",
+        "property_id",
+        "hash",
+        "payload",
+        "created_at"
+      ]
+    }
+  ]
+}
