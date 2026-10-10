@@ -581,3 +581,8 @@ Integraciones bancarias en vivo, sincronización contable, pagos electrónicos, 
 - F3: Fannie Mae, General Rental Income Information, B3-3.8-01. https://selling-guide.fanniemae.com/sel/b3-3.8-01/rental-income
 
 Fuentes externas consultadas el 7 de septiembre de 2026. La propuesta toma esas guías como ejemplos de requisitos que deben parametrizarse y verificarse por programa; no como autorización o garantía de refinanciamiento para el inmueble del archivo.
+
+
+## Ampliación del 10 de octubre de 2026 · Supabase
+
+Se agregan [HU-53 a HU-68](HU-53-HU-68_Migracion_Supabase.md) para migrar D1, R2 y autenticación ChatGPT a PostgreSQL, Storage y Auth de Supabase. Incluye consulta administrativa, continuidad, conciliación y reversión. Estado: planificación; no ejecutada.

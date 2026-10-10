@@ -1,6 +1,6 @@
 # Seguimiento del desarrollo de Rehab Atlanta
 
-Documento maestro de avance. Última actualización: 9 de octubre de 2026.
+Documento maestro de avance. Última actualización: 10 de octubre de 2026.
 
 Alcance y criterios detallados: [Plan de desarrollo](Plan_desarrollo_Rehab_Atlanta.md).
 Aplicación: [Rehab Atlanta](https://rehab-atlanta-av.megan2908.chatgpt.site).
@@ -15,8 +15,8 @@ Al cerrar cada historia se registrará qué cambió, cómo se probó, dónde se 
 
 ## Resumen actual
 
-- 52 historias en el plan: 40 del alcance original y 12 de la ampliación de gastos.
-- 39 completadas; 9 en verificación; 0 en desarrollo; 3 pendientes; 1 retirada. El conteo no representa porcentaje de esfuerzo total.
+- 68 historias en el plan: 40 del alcance original, 12 de gastos y 16 de migración a Supabase.
+- 39 completadas; 9 en verificación; 0 en desarrollo; 19 pendientes; 1 retirada. El conteo no representa porcentaje de esfuerzo total.
 - HU-08/HU-10/HU-11/HU-12 completadas, probadas y publicadas. HU-09/HU-13/HU-14/HU-15 completadas y publicadas. HU-16 a HU-20 completadas, probadas y publicadas. HU-21 a HU-23 completadas, probadas y publicadas. HU-24 a HU-28 completadas, probadas y publicadas. HU-29 a HU-33 completadas, probadas y publicadas. HU-34 a HU-38 completadas, probadas y publicadas. HU-39/HU-40 completadas, probadas y publicadas. HU-03 fue retirada por decisión del usuario; se conserva la ficha manual.
 - Publicación privada confirmada: versión 14, el 14 de septiembre de 2026. Incluye navegación agrupada en el encabezado y conserva HU-01 a HU-40 con sus estados de validación.
 - HU-41/HU-42/HU-43/HU-44/HU-46/HU-47/HU-48/HU-51/HU-52 tienen implementación local y pruebas. Publicación y validación alojada pendientes; consultar [entrega local](HU-47-HU-48-HU-51-HU-52.md). HU-45, HU-49 y HU-50 permanecen pendientes.
@@ -83,6 +83,26 @@ Implementado y probado localmente el 9 de octubre de 2026. La ficha queda manual
 | HU-50 | Controlar devoluciones y créditos de materiales | Pendiente | Ampliación D | Pendiente de desarrollo |
 | HU-51 | Detectar sobrecostos y actualizar la previsión de cierre | En verificación | Implementación local y pruebas; [detalle](HU-47-HU-48-HU-51-HU-52.md). Publicación pendiente. | Pendiente de publicación y uso |
 | HU-52 | Capturar gastos recurrentes y reembolsos de obra | En verificación | Implementación local y pruebas; [detalle](HU-47-HU-48-HU-51-HU-52.md). Publicación pendiente. | Pendiente de publicación y uso |
+| HU-53 | Inventariar y respaldar la información actual | Pendiente | Migración Supabase | Sin implementación |
+| HU-54 | Preparar Supabase y validar el alojamiento | Pendiente | Migración Supabase | Sin implementación |
+| HU-55 | Diseñar el modelo PostgreSQL y las migraciones | Pendiente | Migración Supabase | Sin implementación |
+| HU-56 | Ingresar con Supabase Auth | Pendiente | Migración Supabase | Sin implementación |
+| HU-57 | Vincular usuarios existentes y conservar sus datos | Pendiente | Migración Supabase | Sin implementación |
+| HU-58 | Conservar roles y aislamiento de datos | Pendiente | Migración Supabase | Sin implementación |
+| HU-59 | Migrar y conciliar los datos de D1 | Pendiente | Migración Supabase | Sin implementación |
+| HU-60 | Adaptar las operaciones del backend a PostgreSQL | Pendiente | Migración Supabase | Sin implementación |
+| HU-61 | Guardar archivos nuevos en Supabase Storage | Pendiente | Migración Supabase | Sin implementación |
+| HU-62 | Migrar documentos históricos de R2 | Pendiente | Migración Supabase | Sin implementación |
+| HU-63 | Consultar la información desde el panel de Supabase | Pendiente | Migración Supabase | Sin implementación |
+| HU-64 | Mantener auditoría, archivo y eliminación segura | Pendiente | Migración Supabase | Sin implementación |
+| HU-65 | Validar la migración de extremo a extremo | Pendiente | Migración Supabase | Sin implementación |
+| HU-66 | Cambiar producción con un plan de reversión | Pendiente | Migración Supabase | Sin implementación |
+| HU-67 | Administrar respaldos, capacidad y operación | Pendiente | Migración Supabase | Sin implementación |
+| HU-68 | Retirar dependencias antiguas y cerrar la migración | Pendiente | Migración Supabase | Sin implementación |
+
+## Ampliación Supabase
+
+[HU-53 a HU-68: alcance, dependencias y aceptación](HU-53-HU-68_Migracion_Supabase.md). Inicio recomendado: HU-53 y HU-54. El código fuente está en GitHub; la migración y su entrega en producción aún no han comenzado.
 
 ## HU-01 · Conservación y migración
 
