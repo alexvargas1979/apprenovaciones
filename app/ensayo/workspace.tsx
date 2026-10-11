@@ -43,7 +43,9 @@ export default function Workspace({ writable }: { writable: boolean }) {
     [error, setError] = useState(''),
     [notice, setNotice] = useState(''),
     [revision, setRevision] = useState(0);
-  const pending = useRef<{ key: string; requestId: string } | null>(null);
+  // Keep each unresolved command's receipt identity, even if the user edits
+  // another command and then returns to the original after a lost response.
+  const pending = useRef(new Map<string, string>());
   const property = properties.find((p) => p.id === selected);
   useEffect(() => {
     let active = true;
@@ -83,7 +85,15 @@ export default function Workspace({ writable }: { writable: boolean }) {
     };
   }, [selected, revision]);
   async function mutate(kind: 'name' | 'duplicate') {
-    if (!property || !versions || busy) return;
+    if (
+      !writable ||
+      loading ||
+      !property ||
+      !versions ||
+      busy ||
+      versions.propertyId !== property.id
+    )
+      return;
     setBusy(true);
     setError('');
     setNotice('');
@@ -105,15 +115,15 @@ export default function Workspace({ writable }: { writable: boolean }) {
             label: label.trim(),
           };
     const key = JSON.stringify({ url, body });
-    if (pending.current?.key !== key)
-      pending.current = { key, requestId: crypto.randomUUID() };
+    const requestId = pending.current.get(key) ?? crypto.randomUUID();
+    pending.current.set(key, requestId);
     try {
       await request(url, {
         method: kind === 'name' ? 'PATCH' : 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ ...body, requestId: pending.current.requestId }),
+        body: JSON.stringify({ ...body, requestId }),
       });
-      pending.current = null;
+      pending.current.delete(key);
       setNotice(
         kind === 'name'
           ? 'Nombre guardado.'

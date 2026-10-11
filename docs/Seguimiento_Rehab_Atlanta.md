@@ -396,3 +396,6 @@ HU-60, tercera entrega del 11 de octubre: duplicación de escenarios con auditor
 
 
 HU-60, cuarta entrega del 11 de octubre: pantalla `/ensayo` conectada a consulta, cambio de nombre y duplicación, disponible sólo bajo opciones locales. TypeScript/build aprobados; 6 pruebas HTTP nuevas, 28 regresiones de escritura y 3 comprobaciones de desactivación. La ejecución de Chrome quedó bloqueada; revisión visual e interacción de formularios pendientes. Sin publicación ni cambios productivos. [Detalle y limitaciones](HU-60_Backend_PostgreSQL.md).
+
+
+HU-60, quinta entrega del 11 de octubre: 12 pruebas de interacción del componente aprobadas con React/jsdom y API simulada. Corregido un riesgo de duplicación al editar y restaurar un comando después de perder su respuesta. TypeScript y build aprobados. La revisión visual y la prueba integral en navegador siguen pendientes; no hubo cambios productivos. [Detalle](HU-60_Backend_PostgreSQL.md).

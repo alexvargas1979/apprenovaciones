@@ -126,3 +126,21 @@ node scripts/migration/test-hu60-preview.mjs --http-only --expect-disabled
 ```
 
 HU-60 permanece En desarrollo. Próximo paso: ejecutar la validación de interacción pendiente y continuar las escrituras del expediente y las operaciones financieras; todavía no están portados guardar/aprobar escenarios, pruebas de estrés, facturas, pagos ni todos los tokens heredados.
+
+
+## Quinta entrega · Interacciones y reintentos del formulario
+
+11 de octubre de 2026. Se ejecutó el componente real en React con jsdom 26.1.0 y API simulada. Las 12 comprobaciones cubren carga de propiedad/base aprobada, renombrado con el token mostrado, duplicación, respuesta perdida, conflicto y recarga, consulta sin escritura, cuenta vacía, ausencia de escenarios, límite de 50, cambio de propiedad y fallo de lectura posterior a una escritura confirmada.
+
+Se reprodujo un defecto adicional: después de perder la respuesta de una duplicación, editar y enviar otro comando y volver al original generaba un requestId nuevo, con riesgo de crear otra copia. La pantalla ahora conserva un identificador por comando no resuelto durante su montaje y lo elimina al recibir confirmación. La prueba primero falló con cuatro escenarios en lugar de tres; después de la corrección pasa y verifica el mismo requestId al volver al comando original. Se reforzó además la comprobación de modo de escritura, carga y propiedad seleccionada antes de enviar.
+
+Estas pruebas usan transporte simulado: validan el comportamiento del componente, no sustituyen las pruebas HTTP/RLS anteriores ni prueban presentación visual. No hubo nuevos cambios SQL, conexión a producción ni modificación de datos. La comprobación visual y la prueba integral en Chrome siguen pendientes. HU-60 continúa En desarrollo.
+
+Reproducción desde la raíz de la aplicación, con jsdom 26.1.0 disponible (sin cambiar las dependencias de producción):
+
+```sh
+# JSDOM_MODULE puede ser la ruta absoluta a jsdom/lib/api.js.
+node scripts/migration/test-hu60-preview-dom.mjs
+```
+
+Validación: 12 pruebas de interacción aprobadas, TypeScript y build aprobados. Los identificadores de reintento se conservan sólo mientras esta pantalla permanece montada; cerrar o recargar la página requiere revisar la lista antes de volver a crear una copia. Pendientes siguientes: revisión visual y escrituras completas del expediente, escenarios y contabilidad.
