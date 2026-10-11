@@ -1,4 +1,4 @@
-"""Rehearse HU-55 against local Supabase and an isolated disposable database."""
+"""Replay the approved HU-55/HU-57 migrations in a disposable local database."""
 import json
 import pathlib
 import subprocess
@@ -19,9 +19,13 @@ def run():
     if 'project_id = "apprenovaciones-local"' not in config:
         raise RuntimeError('Only the reserved local project may be tested')
     migrations=sorted((ROOT/'supabase/migrations').glob('*.sql'))
-    if len(migrations)!=1 or not migrations[0].name.endswith('_hu55_business_schema.sql'):
-        raise RuntimeError('Review this HU-55 initial-schema test before replaying later migrations')
-    tests=(ROOT/'supabase/tests/hu55_schema.sql').read_text()
+    if not migrations or any(not m.name.endswith(('_hu55_business_schema.sql','_hu57_identity_mapping.sql')) for m in migrations):
+        raise RuntimeError('Review the local replay harness before adding later migrations')
+    cases=[('hu55_schema.sql',15)]
+    if any(m.name.endswith('_hu57_identity_mapping.sql') for m in migrations):
+        cases.append(('hu57_identity.sql',18))
+    tests='\n'.join((ROOT/'supabase/tests'/name).read_text() for name,_ in cases)
+    expected=sum(count for _,count in cases)
     temporary='hu55_replay_'+uuid.uuid4().hex
     created=False
     try:
@@ -30,11 +34,12 @@ def run():
         sql('postgres',f'create database {temporary};')
         created=True
         # Minimal Auth FK target in disposable DB; real Auth runs in the local test above.
-        sql(temporary,'create schema auth; create table auth.users(id uuid primary key);')
-        sql(temporary,'begin;\n'+migrations[0].read_text()+'\ncommit;')
+        sql(temporary,'create schema auth; create table auth.users(id uuid primary key,email_confirmed_at timestamptz,deleted_at timestamptz,is_anonymous boolean,banned_until timestamptz);')
+        for migration in migrations:
+            sql(temporary,'begin;\n'+migration.read_text()+'\ncommit;')
         _, messages=sql(temporary,tests)
         replay_passes=messages.count('PASS:')
-        if live_passes!=15 or replay_passes!=15:
+        if live_passes!=expected or replay_passes!=expected:
             raise RuntimeError('Unexpected assertion count')
         count,_=sql(temporary,"select count(*) from information_schema.tables where table_schema='public' and table_type='BASE TABLE'")
         print(json.dumps({'local_assertions':live_passes,'fresh_database_assertions':replay_passes,'recreated_tables':int(count),'production_modified':False}))

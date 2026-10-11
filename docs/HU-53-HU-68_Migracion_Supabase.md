@@ -1,6 +1,6 @@
 # HU-53 a HU-68 · Migración a Supabase
 
-Fecha: 10 de octubre de 2026. Estado: HU-53 y HU-54 en desarrollo; HU-55 y HU-56 en verificación local; HU-57 a HU-68 pendientes. Producción reservada; ensayos locales. No se han movido datos productivos ni cambiado la autenticación. [Avance y bloqueos](HU-53-HU-54_Inicio_migracion.md).
+Fecha: 10 de octubre de 2026. Estado: HU-53 y HU-54 en desarrollo; HU-55 a HU-57 en verificación local; HU-58 a HU-68 pendientes. Producción reservada; ensayos locales. No se han movido datos productivos ni cambiado la autenticación. [Avance y bloqueos](HU-53-HU-54_Inicio_migracion.md).
 
 ## Objetivo y alcance
 
@@ -101,12 +101,14 @@ Estado: **En verificación**. Prioridad: **P0**. Dependencias: HU-54.
 
 Como **propietario**, quiero **recuperar mis propiedades al entrar con Supabase**, para operar la plataforma con continuidad y control.
 
-Estado: **Pendiente**. Prioridad: **P0**. Dependencias: HU-53, HU-55, HU-56.
+Estado: **En verificación**. Prioridad: **P0**. Dependencias: HU-53, HU-55, HU-56.
 
 - [ ] Tabla de correspondencia privada entre ID anterior e ID de auth.users; cobertura del 100% de propietarios y colaboradores migrados o excepción bloqueante documentada.
 - [ ] Validar pertenencia mediante sesión anterior autenticada y sesión nueva verificada o proceso administrativo verificable. No asignar propiedades por coincidencia de correo sin prueba.
 - [ ] Conservar autor histórico y propietario; no migrar contraseñas o sesiones de ChatGPT que la app no posee. Reemitir invitaciones pendientes con autorización y caducidad.
 - [ ] Probar cuenta sin vínculo, vínculo duplicado, colaborador revocado y dos propietarios; ninguno puede reclamar los datos del otro.
+
+[Correspondencia privada, proceso administrativo y pruebas locales](HU-57_Vinculacion_identidades.md). Sin vínculos reales; los criterios siguen abiertos hasta completar respaldo, evidencia, cobertura e integración.
 
 ### HU-58 · Conservar roles y aislamiento de datos
 
