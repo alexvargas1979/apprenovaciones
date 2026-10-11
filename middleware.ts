@@ -17,8 +17,9 @@ export async function middleware(req:NextRequest){
   if(path.startsWith('/api/'))return finish(NextResponse.json({error:'Inicia sesión para continuar.'},{status:401}));
   const target=new URL('/ingresar',c.origin);target.searchParams.set('next',path+req.nextUrl.search);return finish(NextResponse.redirect(target));
  }
- // Until HU-57/58/60, a new Auth identity must never read or write legacy D1.
- if(path.startsWith('/api/'))return finish(NextResponse.json({error:'La migración de datos está pendiente. Tu sesión está activa.'},{status:503}));
+ // Only the two PostgreSQL read routes may reach their own local opt-in guard.
+ // Every legacy API and all writes remain blocked for Supabase identities.
+ if(path.startsWith('/api/')&&!(req.method==='GET'&&['/api/properties','/api/accounting'].includes(path)))return finish(NextResponse.json({error:'La migración de datos está pendiente. Tu sesión está activa.'},{status:503}));
  if(path==='/'||path==='/equipo')return finish(NextResponse.redirect(new URL('/cuenta',c.origin)));
  return finish(response);
 }

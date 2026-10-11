@@ -1,3 +1,5 @@
+import {authConfig} from '@/lib/auth/config';
+import {readPostgresWorkspace} from '@/lib/postgres/read-server';
 import {storedBook} from '@/lib/expense-storage';
 import {withoutRetiredImport} from '@/lib/retired-import';
 import {deletionBlock,removePropertyMetadata,referencesProperty,cleanupDeletedFiles} from '@/lib/property-deletion';
@@ -11,7 +13,7 @@ import { validateProperty } from "@/lib/model";
 import {preserveProperties,preservationSummary} from '@/lib/preservation';
 import {prepareExpediente,duplicates} from '@/lib/expediente';
 
-export async function GET(){try{const uid=await user();const db=rawDb();await cleanupDeletedFiles(uid);
+export async function GET(){try{if(authConfig().provider==='supabase'){const data=await readPostgresWorkspace();return Response.json({properties:data.properties.map(p=>attachExecution(p,data)),preservation:data.preservation,readOnly:true},{headers:{'Cache-Control':'no-store'}});}const uid=await user();const db=rawDb();await cleanupDeletedFiles(uid);
   const result=await db.prepare("SELECT payload,updated_at FROM properties WHERE user_id=? ORDER BY updated_at DESC").bind(uid).all<{payload:string;updated_at:string}>();
   const book=await readBook(uid);
   return Response.json({properties:result.results.map(r=>attachExecution({...withoutRetiredImport(JSON.parse(r.payload)),updatedAt:r.updated_at},book)),

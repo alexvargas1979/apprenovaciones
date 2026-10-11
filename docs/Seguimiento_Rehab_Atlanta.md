@@ -16,7 +16,7 @@ Al cerrar cada historia se registrará qué cambió, cómo se probó, dónde se 
 ## Resumen actual
 
 - 68 historias en el plan: 40 del alcance original, 12 de gastos y 16 de migración a Supabase.
-- 39 completadas; 12 en verificación; 4 en desarrollo; 12 pendientes; 1 retirada. El conteo no representa porcentaje de esfuerzo total.
+- 39 completadas; 12 en verificación; 5 en desarrollo; 11 pendientes; 1 retirada. El conteo no representa porcentaje de esfuerzo total.
 - HU-08/HU-10/HU-11/HU-12 completadas, probadas y publicadas. HU-09/HU-13/HU-14/HU-15 completadas y publicadas. HU-16 a HU-20 completadas, probadas y publicadas. HU-21 a HU-23 completadas, probadas y publicadas. HU-24 a HU-28 completadas, probadas y publicadas. HU-29 a HU-33 completadas, probadas y publicadas. HU-34 a HU-38 completadas, probadas y publicadas. HU-39/HU-40 completadas, probadas y publicadas. HU-03 fue retirada por decisión del usuario; se conserva la ficha manual.
 - Publicación privada confirmada: versión 14, el 14 de septiembre de 2026. Incluye navegación agrupada en el encabezado y conserva HU-01 a HU-40 con sus estados de validación.
 - HU-41/HU-42/HU-43/HU-44/HU-46/HU-47/HU-48/HU-51/HU-52 tienen implementación local y pruebas. Publicación y validación alojada pendientes; consultar [entrega local](HU-47-HU-48-HU-51-HU-52.md). HU-45, HU-49 y HU-50 permanecen pendientes.
@@ -90,7 +90,7 @@ Implementado y probado localmente el 9 de octubre de 2026. La ficha queda manual
 | HU-57 | Vincular usuarios existentes y conservar sus datos | En verificación | Migración Supabase | [Correspondencia privada y ensayo local](HU-57_Vinculacion_identidades.md); pendiente evidencia y cobertura reales |
 | HU-58 | Conservar roles y aislamiento de datos | En desarrollo | Migración Supabase · local | [Lectura aislada probada; vistas completas y acciones pendientes](HU-58_Permisos_y_aislamiento.md) |
 | HU-59 | Migrar y conciliar los datos de D1 | En desarrollo | Migración Supabase · ensayo local | [20 tablas sintéticas, repetición y restauración probadas; datos reales pendientes](HU-59_Importacion_y_conciliacion.md) |
-| HU-60 | Adaptar las operaciones del backend a PostgreSQL | Pendiente | Migración Supabase | Sin implementación |
+| HU-60 | Adaptar las operaciones del backend a PostgreSQL | En desarrollo | Migración Supabase · ensayo local | [Lecturas de cartera/contabilidad probadas; transacciones y resto de rutas pendientes](HU-60_Backend_PostgreSQL.md) |
 | HU-61 | Guardar archivos nuevos en Supabase Storage | Pendiente | Migración Supabase | Sin implementación |
 | HU-62 | Migrar documentos históricos de R2 | Pendiente | Migración Supabase | Sin implementación |
 | HU-63 | Consultar la información desde el panel de Supabase | Pendiente | Migración Supabase | Sin implementación |
@@ -387,3 +387,5 @@ Se implementaron HU-47/HU-48/HU-51/HU-52 y se cerraron las brechas locales del b
 ## Avance Supabase · 11 de octubre de 2026
 
 HU-58: correcciones de autorización, 25 comprobaciones de lógica y 28 pruebas contra API local aprobadas. HU-59: plan de importación y ensayo de 20 tablas sintéticas, reversión, idempotencia, detección de conflictos y restauración aprobados. Ambas historias siguen En desarrollo: faltan integración completa de roles/acciones, respaldo real y conciliación funcional del origen. Producción sin cambios. Detalles en [HU-58](HU-58_Permisos_y_aislamiento.md) y [HU-59](HU-59_Importacion_y_conciliacion.md).
+
+HU-60, 11 de octubre: lecturas del propietario integradas a PostgreSQL mediante RPC con RLS e instantánea consistente; 11 pruebas HTTP con 1.201 facturas, 45 comprobaciones SQL locales y 45 de reconstrucción. Vista previa local desactivada al concluir; sin publicación ni cambios productivos. [Detalle](HU-60_Backend_PostgreSQL.md).

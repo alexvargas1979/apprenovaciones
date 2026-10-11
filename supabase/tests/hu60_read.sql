@@ -1,0 +1,13 @@
+begin;
+create function pg_temp.check_read(ok boolean,label text) returns void language plpgsql as $$begin if ok is distinct from true then raise exception 'FAIL: %',label;end if;raise notice 'PASS: %',label;end$$;
+insert into auth.users(id) values ('60000000-0000-4000-8000-000000000001'),('60000000-0000-4000-8000-000000000002');
+insert into public.properties values ('hu60-a','60000000-0000-4000-8000-000000000001','{}',now()),('hu60-b','60000000-0000-4000-8000-000000000002','{}',now());
+insert into public.accounting_books values ('60000000-0000-4000-8000-000000000002','{"private":"other owner"}',now());
+set local role authenticated;
+select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000001',true);
+select pg_temp.check_read(public.owner_workspace_snapshot()->'properties'->0->>'id'='hu60-a' and jsonb_array_length(public.owner_workspace_snapshot()->'properties')=1,'snapshot only own properties');
+select pg_temp.check_read(public.owner_workspace_snapshot()->'book'='null'::jsonb,'snapshot cannot inherit other owner book');
+reset role;
+select pg_temp.check_read(not has_function_privilege('anon','public.owner_workspace_snapshot()','execute'),'anonymous cannot execute snapshot');
+select pg_temp.check_read((select not prosecdef from pg_proc where oid='public.owner_workspace_snapshot()'::regprocedure),'snapshot uses invoker permissions');
+rollback;

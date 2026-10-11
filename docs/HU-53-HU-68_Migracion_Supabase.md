@@ -1,6 +1,6 @@
 # HU-53 a HU-68 · Migración a Supabase
 
-Fecha: 11 de octubre de 2026. Estado: HU-53 y HU-54 en desarrollo; HU-55 a HU-57 en verificación local; HU-58 y HU-59 en desarrollo; HU-60 a HU-68 pendientes. Producción reservada; ensayos locales. No se han movido datos productivos ni cambiado la autenticación. [Avance y bloqueos](HU-53-HU-54_Inicio_migracion.md).
+Fecha: 11 de octubre de 2026. Estado: HU-53 y HU-54 en desarrollo; HU-55 a HU-57 en verificación local; HU-58 a HU-60 en desarrollo; HU-61 a HU-68 pendientes. Producción reservada; ensayos locales. No se han movido datos productivos ni cambiado la autenticación. [Avance y bloqueos](HU-53-HU-54_Inicio_migracion.md).
 
 ## Objetivo y alcance
 
@@ -140,12 +140,14 @@ Estado: **En desarrollo**. Prioridad: **P0**. Dependencias: HU-53, HU-55, HU-57,
 
 Como **usuario**, quiero **seguir usando los módulos sin cambios en sus resultados**, para operar la plataforma con continuidad y control.
 
-Estado: **Pendiente**. Prioridad: **P0**. Dependencias: HU-55, HU-58, HU-59.
+Estado: **En desarrollo**. Prioridad: **P0**. Dependencias: HU-55, HU-58, HU-59.
 
 - [ ] Reemplazar rawDb/D1 y SQL SQLite: placeholders, funciones JSON, batch y lecturas; escoger acceso HTTP/RPC compatible con el runtime y documentar la capa de persistencia.
 - [ ] Factura, líneas, distribuciones, pagos y auditoría se guardan en una transacción; un conjunto de llamadas REST separadas no se considera equivalente a batch atómico.
 - [ ] Preservar control de versiones, conflictos, idempotencia y protección ante edición concurrente o recreación de propiedad eliminada; probar fallo intermedio con rollback.
 - [ ] Las operaciones normales usan identidad del usuario y permisos efectivos; no ejecutar todo con una clave privilegiada. Pruebas de contratos de todas las rutas y cálculos sin diferencias.
+
+[Avance HU-60](HU-60_Backend_PostgreSQL.md): dos lecturas HTTP integradas y probadas con PostgreSQL local; escrituras, colaboradores y demás rutas pendientes.
 
 ### HU-61 · Guardar archivos nuevos en Supabase Storage
 
