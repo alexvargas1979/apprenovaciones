@@ -12,7 +12,7 @@ begin
   raise exception 'FAIL: expected error for %',label;
 end $$;
 select pg_temp.assert_true((select count(*)=20 and bool_and(relrowsecurity) from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind='r'),'20 tables with RLS');
-select pg_temp.assert_true(not exists(select 1 from information_schema.tables t cross join (values ('anon'),('authenticated'),('service_role')) r(role) where t.table_schema='public' and has_table_privilege(r.role, 'public.'||t.table_name, 'SELECT,INSERT,UPDATE,DELETE')),'API roles have no table grants');
+select pg_temp.assert_true(not exists(select 1 from information_schema.tables t cross join (values ('anon'),('authenticated'),('service_role')) r(role) where t.table_schema='public' and has_table_privilege(r.role, 'public.'||t.table_name, 'INSERT,UPDATE,DELETE')),'API roles have no direct write grants');
 insert into auth.users(id) values ('55550000-0000-4000-8000-000000000001'),('55550000-0000-4000-8000-000000000002');
 insert into public.properties values
 ('hu55-p1','55550000-0000-4000-8000-000000000001','{}','2026-10-10T12:00:00-04:00'),

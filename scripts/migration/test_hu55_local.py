@@ -1,4 +1,4 @@
-"""Replay the approved HU-55/HU-57 migrations in a disposable local database."""
+"""Replay the approved HU-55/HU-57/HU-58 migrations in a disposable local database."""
 import json
 import pathlib
 import subprocess
@@ -19,11 +19,13 @@ def run():
     if 'project_id = "apprenovaciones-local"' not in config:
         raise RuntimeError('Only the reserved local project may be tested')
     migrations=sorted((ROOT/'supabase/migrations').glob('*.sql'))
-    if not migrations or any(not m.name.endswith(('_hu55_business_schema.sql','_hu57_identity_mapping.sql')) for m in migrations):
+    if not migrations or any(not m.name.endswith(('_hu55_business_schema.sql','_hu57_identity_mapping.sql','_hu58_read_isolation.sql')) for m in migrations):
         raise RuntimeError('Review the local replay harness before adding later migrations')
     cases=[('hu55_schema.sql',15)]
     if any(m.name.endswith('_hu57_identity_mapping.sql') for m in migrations):
         cases.append(('hu57_identity.sql',18))
+    if any(m.name.endswith('_hu58_read_isolation.sql') for m in migrations):
+        cases.append(('hu58_access.sql',8))
     tests='\n'.join((ROOT/'supabase/tests'/name).read_text() for name,_ in cases)
     expected=sum(count for _,count in cases)
     temporary='hu55_replay_'+uuid.uuid4().hex
@@ -35,6 +37,7 @@ def run():
         created=True
         # Minimal Auth FK target in disposable DB; real Auth runs in the local test above.
         sql(temporary,'create schema auth; create table auth.users(id uuid primary key,email_confirmed_at timestamptz,deleted_at timestamptz,is_anonymous boolean,banned_until timestamptz);')
+        sql(temporary,"create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$; grant usage on schema auth to authenticated;")
         for migration in migrations:
             sql(temporary,'begin;\n'+migration.read_text()+'\ncommit;')
         _, messages=sql(temporary,tests)

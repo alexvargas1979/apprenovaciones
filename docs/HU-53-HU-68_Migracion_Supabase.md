@@ -1,6 +1,6 @@
 # HU-53 a HU-68 · Migración a Supabase
 
-Fecha: 10 de octubre de 2026. Estado: HU-53 y HU-54 en desarrollo; HU-55 a HU-57 en verificación local; HU-58 a HU-68 pendientes. Producción reservada; ensayos locales. No se han movido datos productivos ni cambiado la autenticación. [Avance y bloqueos](HU-53-HU-54_Inicio_migracion.md).
+Fecha: 10 de octubre de 2026. Estado: HU-53 y HU-54 en desarrollo; HU-55 a HU-57 en verificación local; HU-58 en desarrollo; HU-59 a HU-68 pendientes. Producción reservada; ensayos locales. No se han movido datos productivos ni cambiado la autenticación. [Avance y bloqueos](HU-53-HU-54_Inicio_migracion.md).
 
 ## Objetivo y alcance
 
@@ -114,12 +114,14 @@ Estado: **En verificación**. Prioridad: **P0**. Dependencias: HU-53, HU-55, HU-
 
 Como **propietario**, quiero **controlar qué puede ver y modificar cada integrante**, para operar la plataforma con continuidad y control.
 
-Estado: **Pendiente**. Prioridad: **P0**. Dependencias: HU-55, HU-57.
+Estado: **En desarrollo**. Prioridad: **P0**. Dependencias: HU-55, HU-57.
 
 - [ ] Matriz por rol, propiedad, tarea, centro de costo y acción que reproduzca permisos actuales; concesiones consultadas en base para revocación efectiva.
 - [ ] RLS en tablas expuestas y permisos mínimos de Data API; políticas SELECT/INSERT/UPDATE/DELETE, incluyendo USING y WITH CHECK para impedir cambiar de propietario.
 - [ ] Probar por API directa como anónimo, propietario A/B, colaborador limitado y revocado. RLS por fila no oculta columnas: separar/proyectar datos sensibles y el JSON compartido.
 - [ ] Vistas con security_invoker cuando se expongan; funciones privilegiadas solo si son necesarias, con alcance y EXECUTE restringidos. Revisar advisors sin hallazgos críticos pendientes.
+
+[Avance de HU-58 y matriz de permisos](HU-58_Permisos_y_aislamiento.md): aislamiento de lectura probado localmente; faltan proyecciones completas por rol y acciones transaccionales. Los criterios integrales permanecen abiertos.
 
 ### HU-59 · Migrar y conciliar los datos de D1
 
