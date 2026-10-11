@@ -1,3 +1,4 @@
-import { getChatGPTUser } from '@/app/chatgpt-auth';
-export async function user(req?:Request){const u=await getChatGPTUser();if(!u)throw new Error('AUTH');if(req&&req.method!=='GET'){const origin=req.headers.get('origin');if(!origin||origin!==new URL(req.url).origin)throw Error('ORIGIN');}return u.userId;}
-export function fail(e:unknown){const msg=e instanceof Error?e.message:'No se pudo completar la operación';return Response.json({error:msg==='FORBIDDEN'?'Permiso de gastos insuficiente o revocado.':msg==='AUTH'?'Inicia sesión para continuar.':msg==='ORIGIN'?'Solicitud no permitida.':msg},{status:msg==='AUTH'?401:msg==='ORIGIN'||msg==='FORBIDDEN'?403:400});}
+import {authConfig} from '@/lib/auth/config';
+import { getAppUser } from '@/lib/auth/identity';
+export async function user(req?:Request){const u=await getAppUser();if(!u)throw new Error('AUTH');if(authConfig().provider==='supabase')throw new Error('MIGRATION_PENDING');if(req&&req.method!=='GET'){const origin=req.headers.get('origin');if(!origin||origin!==new URL(req.url).origin)throw Error('ORIGIN');}return u.userId;}
+export function fail(e:unknown){const msg=e instanceof Error?e.message:'No se pudo completar la operación';return Response.json({error:msg==='FORBIDDEN'?'Permiso de gastos insuficiente o revocado.':msg==='MIGRATION_PENDING'?'La migración de datos está pendiente.':msg==='AUTH'?'Inicia sesión para continuar.':msg==='ORIGIN'?'Solicitud no permitida.':msg},{status:msg==='MIGRATION_PENDING'?503:msg==='AUTH'?401:msg==='ORIGIN'||msg==='FORBIDDEN'?403:400});}

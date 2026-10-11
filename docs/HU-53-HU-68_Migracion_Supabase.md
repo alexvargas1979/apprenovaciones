@@ -1,6 +1,6 @@
 # HU-53 a HU-68 · Migración a Supabase
 
-Fecha: 10 de octubre de 2026. Estado: HU-53 y HU-54 en desarrollo; HU-55 en verificación local; HU-56 a HU-68 pendientes. Producción reservada; ensayos locales. No se han movido datos productivos ni cambiado la autenticación. [Avance y bloqueos](HU-53-HU-54_Inicio_migracion.md).
+Fecha: 10 de octubre de 2026. Estado: HU-53 y HU-54 en desarrollo; HU-55 y HU-56 en verificación local; HU-57 a HU-68 pendientes. Producción reservada; ensayos locales. No se han movido datos productivos ni cambiado la autenticación. [Avance y bloqueos](HU-53-HU-54_Inicio_migracion.md).
 
 ## Objetivo y alcance
 
@@ -88,12 +88,14 @@ Evidencia técnica local: [modelo, diccionario y pruebas](HU-55_Modelo_PostgreSQ
 
 Como **usuario**, quiero **iniciar y cerrar sesión sin depender de mi cuenta de ChatGPT**, para operar la plataforma con continuidad y control.
 
-Estado: **Pendiente**. Prioridad: **P0**. Dependencias: HU-54.
+Estado: **En verificación**. Prioridad: **P0**. Dependencias: HU-54.
 
 - [ ] Flujo inicial propuesto: correo y contraseña, verificación de correo, recuperación y cierre de sesión; altas por invitación por defecto. Google queda como ampliación opcional.
 - [ ] Validación de identidad en servidor, sesiones SSR con cookies y renovación; probar expiración, enlace usado/caducado, cambio de contraseña, callback inválido y retorno seguro.
 - [ ] Sustituir getChatGPTUser y encabezados oai-authenticated-* como fuente de identidad en todas las rutas, páginas y descargas; petición sin sesión válida recibe 401.
 - [ ] Configurar dominio/callback de prueba y producción y entrega de correo/SMTP; probar envío real con destinatarios autorizados antes de producción. Roles nunca desde user_metadata editable.
+
+[Implementación y 22 verificaciones locales](HU-56_Acceso_Supabase.md). Los criterios permanecen abiertos para la entrega integral: SMTP, alojamiento, corte de identidad y acceso a datos aún pendientes.
 
 ### HU-57 · Vincular usuarios existentes y conservar sus datos
 

@@ -1,1 +1,1 @@
-import {requireChatGPTUser} from '../chatgpt-auth';import TeamPanel from './team-panel';export const dynamic='force-dynamic';export default async function Page(){await requireChatGPTUser('/equipo');return <TeamPanel/>;}
+import {requireAppUser} from '@/lib/auth/identity';import TeamPanel from './team-panel';export const dynamic='force-dynamic';export default async function Page(){await requireAppUser('/equipo');return <TeamPanel/>;}

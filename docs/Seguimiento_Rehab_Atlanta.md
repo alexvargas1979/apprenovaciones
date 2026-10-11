@@ -16,7 +16,7 @@ Al cerrar cada historia se registrará qué cambió, cómo se probó, dónde se 
 ## Resumen actual
 
 - 68 historias en el plan: 40 del alcance original, 12 de gastos y 16 de migración a Supabase.
-- 39 completadas; 10 en verificación; 2 en desarrollo; 16 pendientes; 1 retirada. El conteo no representa porcentaje de esfuerzo total.
+- 39 completadas; 11 en verificación; 2 en desarrollo; 15 pendientes; 1 retirada. El conteo no representa porcentaje de esfuerzo total.
 - HU-08/HU-10/HU-11/HU-12 completadas, probadas y publicadas. HU-09/HU-13/HU-14/HU-15 completadas y publicadas. HU-16 a HU-20 completadas, probadas y publicadas. HU-21 a HU-23 completadas, probadas y publicadas. HU-24 a HU-28 completadas, probadas y publicadas. HU-29 a HU-33 completadas, probadas y publicadas. HU-34 a HU-38 completadas, probadas y publicadas. HU-39/HU-40 completadas, probadas y publicadas. HU-03 fue retirada por decisión del usuario; se conserva la ficha manual.
 - Publicación privada confirmada: versión 14, el 14 de septiembre de 2026. Incluye navegación agrupada en el encabezado y conserva HU-01 a HU-40 con sus estados de validación.
 - HU-41/HU-42/HU-43/HU-44/HU-46/HU-47/HU-48/HU-51/HU-52 tienen implementación local y pruebas. Publicación y validación alojada pendientes; consultar [entrega local](HU-47-HU-48-HU-51-HU-52.md). HU-45, HU-49 y HU-50 permanecen pendientes.
@@ -86,7 +86,7 @@ Implementado y probado localmente el 9 de octubre de 2026. La ficha queda manual
 | HU-53 | Inventariar y respaldar la información actual | En desarrollo | Migración Supabase | [Avance y bloqueos](HU-53-HU-54_Inicio_migracion.md) |
 | HU-54 | Preparar Supabase y validar el alojamiento | En desarrollo | Migración Supabase | [Avance y bloqueos](HU-53-HU-54_Inicio_migracion.md) |
 | HU-55 | Diseñar el modelo PostgreSQL y las migraciones | En verificación | Migración Supabase | [20 tablas y 30 comprobaciones locales](HU-55_Modelo_PostgreSQL.md); pendiente contraste productivo |
-| HU-56 | Ingresar con Supabase Auth | Pendiente | Migración Supabase | Sin implementación |
+| HU-56 | Ingresar con Supabase Auth | En verificación | Migración Supabase | [Acceso local y 22 pruebas](HU-56_Acceso_Supabase.md); pendiente SMTP, alojamiento e integración |
 | HU-57 | Vincular usuarios existentes y conservar sus datos | Pendiente | Migración Supabase | Sin implementación |
 | HU-58 | Conservar roles y aislamiento de datos | Pendiente | Migración Supabase | Sin implementación |
 | HU-59 | Migrar y conciliar los datos de D1 | Pendiente | Migración Supabase | Sin implementación |

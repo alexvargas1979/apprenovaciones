@@ -1,0 +1,2 @@
+import type {ReactNode} from 'react';
+export default function AuthShell({title,children}:{title:string;children:ReactNode}){return <main className="auth-page"><a className="auth-brand" href="/">REHAB ATLANTA</a><section className="auth-card"><p className="auth-eyebrow">TU CARTERA, EN UN SOLO LUGAR</p><h1>{title}</h1>{children}</section><p className="auth-footer">Propiedades · Remodelación · Inversión</p></main>}
