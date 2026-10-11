@@ -17,10 +17,10 @@ export async function middleware(req:NextRequest){
   if(path.startsWith('/api/'))return finish(NextResponse.json({error:'Inicia sesión para continuar.'},{status:401}));
   const target=new URL('/ingresar',c.origin);target.searchParams.set('next',path+req.nextUrl.search);return finish(NextResponse.redirect(target));
  }
- // Only the two PostgreSQL read routes may reach their own local opt-in guard.
+ // PostgreSQL preview reads enforce their own local opt-in guard.
  // Narrow rename and scenario-copy routes enforce their local write opt-in.
- if(path.startsWith('/api/')&&!((req.method==='GET'&&['/api/properties','/api/accounting'].includes(path))||(req.method==='PATCH'&&path==='/api/properties/name')||(req.method==='POST'&&path==='/api/scenarios/duplicate')))return finish(NextResponse.json({error:'La migración de datos está pendiente. Tu sesión está activa.'},{status:503}));
+ if(path.startsWith('/api/')&&!((req.method==='GET'&&['/api/properties','/api/accounting','/api/preview/scenarios'].includes(path))||(req.method==='PATCH'&&path==='/api/properties/name')||(req.method==='POST'&&path==='/api/scenarios/duplicate')))return finish(NextResponse.json({error:'La migración de datos está pendiente. Tu sesión está activa.'},{status:503}));
  if(path==='/'||path==='/equipo')return finish(NextResponse.redirect(new URL('/cuenta',c.origin)));
  return finish(response);
 }
-export const config={matcher:['/','/equipo/:path*','/api/:path*','/auth/:path*','/ingresar','/recuperar','/cuenta']};
+export const config={matcher:['/','/equipo/:path*','/api/:path*','/auth/:path*','/ingresar','/recuperar','/cuenta','/ensayo']};

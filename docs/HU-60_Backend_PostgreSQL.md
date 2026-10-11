@@ -59,7 +59,7 @@ Validación de esta entrega:
 - 58 comprobaciones SQL locales y las mismas 58 al reconstruir las migraciones. TypeScript aprobado y advisors sin advertencias ni errores.
 - Con la opción retirada y el servidor reiniciado, el endpoint autenticado devuelve 503: la vista previa HTTP queda apagada.
 
-Migración local: `20261011172554_hu60_property_name_transaction.sql`. No hay cambio de interfaz todavía: el editor general sigue usando PUT y permanece bloqueado con Supabase. Para probar esta operación se usa el endpoint acotado, no la pantalla de edición.
+Migración local: `20261011172554_hu60_property_name_transaction.sql`. En esa segunda entrega no había cambio de interfaz: el editor general sigue usando PUT y permanece bloqueado con Supabase. Para probar esta operación se usa el endpoint acotado, no la pantalla de edición.
 
 ```sh
 # Con REHAB_POSTGRES_WRITE_PREVIEW=1 en .env.local y servidor local reiniciado:
@@ -94,4 +94,35 @@ npm exec --yes --package=supabase@2.120.0 -- node scripts/migration/test-hu60-sc
 npm exec --yes --package=supabase@2.120.0 -- node scripts/migration/test-hu60-scenarios.mjs --expect-disabled
 ```
 
-Esta entrega todavía no conecta el botón de duplicar de la interfaz a la nueva ruta ni porta guardar, aprobar o calcular pruebas de estrés. El POST general de escenarios permanece bloqueado en modo Supabase. HU-60 continúa En desarrollo; faltan también guardado general de propiedades, facturas y pagos, tokens de versión heredados y validación integral de módulos.
+La tercera entrega todavía no conectaba el botón de duplicar de la interfaz a la nueva ruta ni porta guardar, aprobar o calcular pruebas de estrés. El POST general de escenarios permanece bloqueado en modo Supabase. HU-60 continúa En desarrollo; faltan también guardado general de propiedades, facturas y pagos, tokens de versión heredados y validación integral de módulos.
+
+
+## Cuarta entrega · Pantalla de ensayo local
+
+11 de octubre de 2026. Se agregó `/ensayo`, accesible desde Mi cuenta únicamente con `REHAB_POSTGRES_READ_PREVIEW=1`, proveedor Supabase y los orígenes locales ya establecidos. El indicador de escritura exige además `REHAB_POSTGRES_WRITE_PREVIEW=1`. Cada endpoint conserva sus propios controles; ocultar botones no sustituye autorización.
+
+La pantalla permite seleccionar una propiedad, cambiar su nombre con motivo y duplicar un escenario mediante las transacciones anteriores. Muestra carga, cuenta vacía, confirmación, errores y límites; mantiene los campos al fallar y reutiliza el identificador del mismo comando ante un reintento sin recarga. Recargar descarta los campos sin guardar. Un guardado confirmado se indica aunque falle la lectura posterior. Las funciones generales pendientes se identifican en pantalla.
+
+`GET /api/preview/scenarios` exige propietario mediante la lectura protegida y RLS. Devuelve únicamente metadatos, base aprobada y tokens de versión; consulta hasta 51 filas y rechaza más de 50 para evitar una lista truncada. La lectura de cartera y la de escenarios son consultas separadas: el listado no representa una instantánea conjunta; duplicar vuelve a verificar las versiones dentro de su transacción. Renombrar usa la versión de la propiedad efectivamente mostrada, sin sustituirla por un token de otra lectura posterior.
+
+Validación de esta entrega:
+
+- TypeScript y compilación de producción aprobados.
+- 6 comprobaciones HTTP nuevas: autenticación, propietario ajeno, metadatos y tokens, enlace desde cuenta, renderizado de la pantalla y redirección de visitantes.
+- Repetidas con éxito las 15 comprobaciones de renombrado y 13 de duplicación.
+- 3 comprobaciones con las opciones retiradas y el servidor reiniciado: API 503, pantalla deshabilitada y enlace ausente en Mi cuenta.
+- La prueba Playwright de formularios, reintento tras respuesta perdida, conflicto, cuenta vacía y diseño móvil está preparada pero **no validada**: Chrome abortó al iniciar en el entorno restringido (SIGABRT/EPERM). No se obtuvieron capturas ni se afirma validación visual o de interacción en navegador.
+- Sólo se usaron usuarios y registros sintéticos, eliminados al terminar. No se cambiaron esquema, producción ni permisos SQL. Las opciones temporales se retiraron al concluir.
+
+Prueba reproducible (servidor local con ambas opciones activadas):
+
+```sh
+# SUPABASE_CLI puede indicar el ejecutable local instalado.
+node scripts/migration/test-hu60-preview.mjs --http-only
+# Con Playwright disponible; PLAYWRIGHT_MODULE y CHROME_PATH admiten rutas explícitas:
+node scripts/migration/test-hu60-preview.mjs
+# Tras retirar opciones y reiniciar el servidor:
+node scripts/migration/test-hu60-preview.mjs --http-only --expect-disabled
+```
+
+HU-60 permanece En desarrollo. Próximo paso: ejecutar la validación de interacción pendiente y continuar las escrituras del expediente y las operaciones financieras; todavía no están portados guardar/aprobar escenarios, pruebas de estrés, facturas, pagos ni todos los tokens heredados.

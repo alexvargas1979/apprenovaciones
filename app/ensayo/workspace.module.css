@@ -1,0 +1,172 @@
+.page {
+  min-height: 100vh;
+  background: #f3f6fa;
+  color: #183047;
+  font-family: Arial, sans-serif;
+}
+.header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding: 22px max(24px, calc((100vw - 1120px) /2));
+  background: white;
+  border-bottom: 1px solid #d9e2ec;
+}
+.header a {
+  color: #235aa3;
+  text-decoration: underline;
+}
+.header strong {
+  margin-left: auto;
+}
+.badge {
+  display: inline-block;
+  background: #e8effc;
+  color: #23528b;
+  border-radius: 30px;
+  font-size: 12px;
+  padding: 6px 10px;
+}
+.main {
+  max-width: 1120px;
+  margin: auto;
+  padding: 36px 24px;
+}
+.main h1 {
+  font-size: 32px;
+  margin: 0 0 8px;
+}
+.main h2 {
+  font-size: 24px;
+}
+.lead,
+.card p {
+  color: #526477;
+  line-height: 1.6;
+}
+.info {
+  padding: 18px 20px;
+  border: 1px solid #cdddf2;
+  background: #edf3fd;
+  border-radius: 12px;
+  line-height: 1.6;
+}
+.toolbar {
+  display: flex;
+  gap: 18px;
+  align-items: end;
+  margin-top: 26px;
+}
+.toolbar label {
+  flex: 1;
+}
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.card {
+  background: white;
+  border: 1px solid #d9e2ec;
+  border-radius: 14px;
+  padding: 24px;
+  min-width: 0;
+}
+.card h3 {
+  margin-top: 0;
+  font-size: 20px;
+}
+.page label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.page input,
+.page select,
+.page textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #9db0c5;
+  border-radius: 8px;
+  background: white;
+  color: #183047;
+  font: inherit;
+  min-width: 0;
+}
+.page textarea {
+  min-height: 90px;
+}
+.page button {
+  border: 0;
+  border-radius: 8px;
+  background: #245fd1;
+  color: white;
+  padding: 12px 18px;
+  font: inherit;
+  cursor: pointer;
+}
+.toolbar button {
+  margin-bottom: 16px;
+}
+.page button:disabled,
+.page fieldset:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.page fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.page :focus-visible {
+  outline: 3px solid #3476e3;
+  outline-offset: 3px;
+}
+.error {
+  color: #9c2525;
+  background: #fff0f0;
+  padding: 16px;
+  border-radius: 8px;
+}
+.list {
+  padding-left: 20px;
+  max-height: 240px;
+  overflow: auto;
+}
+.list li {
+  padding: 6px 0;
+  overflow-wrap: anywhere;
+}
+.list .badge {
+  margin-left: 8px;
+}
+@media (max-width: 700px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .toolbar {
+    display: block;
+  }
+  .header {
+    gap: 12px;
+    padding: 18px;
+  }
+  .header strong {
+    margin-left: 0;
+  }
+  .main {
+    padding: 24px 16px;
+  }
+  .card {
+    padding: 20px;
+  }
+  .main h2 {
+    overflow-wrap: anywhere;
+  }
+}
