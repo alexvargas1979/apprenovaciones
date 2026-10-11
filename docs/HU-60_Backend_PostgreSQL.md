@@ -1,6 +1,6 @@
 # HU-60 · Backend PostgreSQL
 
-11 de octubre de 2026. Estado: **En desarrollo**. Lectura de propiedades/contabilidad y una primera escritura acotada —cambio de nombre con auditoría— implementadas y probadas localmente. No se conectaron todas las pantallas ni hubo cambios en producción. Las vistas previas HTTP están desactivadas al finalizar los ensayos.
+11 de octubre de 2026. Estado: **En desarrollo**. Lectura de propiedades/contabilidad y escrituras acotadas de cambio de nombre y duplicación de escenarios con auditoría implementadas y probadas localmente. No se conectaron todas las pantallas ni hubo cambios en producción. Las vistas previas HTTP están desactivadas al finalizar los ensayos.
 
 ## Implementación
 
@@ -14,7 +14,7 @@ Una sola sentencia SQL estable reúne propiedades, libro, cabeceras, líneas, di
 
 El adaptador `lib/postgres/workspace.ts` mantiene libros heredados incrustados y reconstruye los normalizados (`invoiceStorage=1`) con líneas y distribuciones. Usa los IDs y la propiedad de las columnas relacionales, conserva el historial, toma las versiones de las columnas temporales y calcula el resumen de preservación. Las propiedades conservan la proyección existente de ejecución de obra. No modifica la instantánea recibida.
 
-La respuesta HTTP incluye `readOnly: true` y encabezados sin caché. El middleware deja pasar estas dos lecturas y la ruta acotada de cambio de nombre hacia sus verificaciones locales. PUT/DELETE de propiedades, POST contable, rutas restantes y consultas de colaboradores con `grantId` permanecen bloqueadas; una identidad Supabase nunca llega a escrituras D1.
+La respuesta HTTP incluye `readOnly: true` y encabezados sin caché. El middleware deja pasar estas dos lecturas y las rutas acotadas de cambio de nombre y duplicación de escenarios hacia sus verificaciones locales. PUT/DELETE de propiedades, POST contable, rutas restantes y consultas de colaboradores con `grantId` permanecen bloqueadas; una identidad Supabase nunca llega a escrituras D1.
 
 ## Verificación realizada
 
@@ -69,3 +69,29 @@ npm exec --yes --package=supabase@2.120.0 -- node scripts/migration/test-hu60-wr
 ```
 
 HU-60 sigue En desarrollo. Esta transacción no equivale a haber portado el guardado completo de propiedades, facturas o pagos, y no resuelve todavía los tokens `fecha-UUID` heredados de HU-59. Producción no fue modificada.
+
+## Tercera entrega · Duplicación transaccional de escenarios
+
+11 de octubre de 2026. `POST /api/scenarios/duplicate` admite `propertyId`, `sourceId`, `version`, `bookVersion` (null si no existe libro), `label` y `requestId`. Se verifica la cuenta, el origen y la misma opción local `REHAB_POSTGRES_WRITE_PREVIEW=1`. No admite un resultado calculado ni un snapshot enviado por el cliente.
+
+La RPC `duplicate_owned_scenario` copia directamente el JSON del escenario existente de la misma propiedad y propietario, conserva `source_id`, motor y resultados históricos, y registra la auditoría en la misma transacción. No recalcula rentabilidad ni modifica la base aprobada. La función interna está en `access_private`, con SECURITY DEFINER acotado, identidad obtenida de `auth.uid()`, `search_path` vacío, zona UTC y EXECUTE restringido; la envoltura pública es SECURITY INVOKER. No se concedieron permisos INSERT directos sobre escenarios.
+
+Bloquea la propiedad para comprobar su versión y el límite de 50 escenarios. Verifica la versión contable y bloquea en lectura un libro existente. La solicitud repetida se serializa por propietario/requestId y devuelve el mismo ID; cambiar su contenido causa conflicto. La futura escritura general del libro debe coordinar el caso de creación de un libro que todavía no existe: hoy esas escrituras siguen bloqueadas y duplicar copia un resultado histórico, no un cálculo que dependa de ese libro nuevo.
+
+Validación:
+
+- 13 pruebas SQL nuevas: copia íntegra, base aprobada intacta, auditoría, repetición, conflictos de solicitud/propiedad/libro, fuente ajena, límite, permisos y reversión completa ante un fallo provocado en auditoría.
+- 13 pruebas HTTP/API: origen, identidad, etiqueta, rechazo de snapshot inyectado, creación/repetición, concurrencia, conservación de fuente/resultados y escritura directa bloqueada. Con 49 escenarios, dos solicitudes simultáneas producen una creación y un conflicto; total final 50.
+- 71 comprobaciones SQL locales y las mismas 71 sobre una base reconstruida. TypeScript aprobado. Advisors sin advertencias ni errores.
+- La opción de escritura HTTP se retiró al concluir y se reinició el servidor para comprobar respuesta 503 con una sesión válida.
+
+Migración: `20261011173336_hu60_scenario_duplicate.sql`. Las pruebas usan únicamente cuentas y registros sintéticos, eliminados al terminar. No hubo publicación ni migración productiva.
+
+```sh
+# Con vista previa local de escritura activa:
+npm exec --yes --package=supabase@2.120.0 -- node scripts/migration/test-hu60-scenarios.mjs
+# Después de quitarla y reiniciar:
+npm exec --yes --package=supabase@2.120.0 -- node scripts/migration/test-hu60-scenarios.mjs --expect-disabled
+```
+
+Esta entrega todavía no conecta el botón de duplicar de la interfaz a la nueva ruta ni porta guardar, aprobar o calcular pruebas de estrés. El POST general de escenarios permanece bloqueado en modo Supabase. HU-60 continúa En desarrollo; faltan también guardado general de propiedades, facturas y pagos, tokens de versión heredados y validación integral de módulos.

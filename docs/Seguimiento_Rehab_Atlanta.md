@@ -90,7 +90,7 @@ Implementado y probado localmente el 9 de octubre de 2026. La ficha queda manual
 | HU-57 | Vincular usuarios existentes y conservar sus datos | En verificación | Migración Supabase | [Correspondencia privada y ensayo local](HU-57_Vinculacion_identidades.md); pendiente evidencia y cobertura reales |
 | HU-58 | Conservar roles y aislamiento de datos | En desarrollo | Migración Supabase · local | [Lectura aislada probada; vistas completas y acciones pendientes](HU-58_Permisos_y_aislamiento.md) |
 | HU-59 | Migrar y conciliar los datos de D1 | En desarrollo | Migración Supabase · ensayo local | [20 tablas sintéticas, repetición y restauración probadas; datos reales pendientes](HU-59_Importacion_y_conciliacion.md) |
-| HU-60 | Adaptar las operaciones del backend a PostgreSQL | En desarrollo | Migración Supabase · ensayo local | [Lecturas y cambio de nombre transaccional probados; operaciones financieras y resto de rutas pendientes](HU-60_Backend_PostgreSQL.md) |
+| HU-60 | Adaptar las operaciones del backend a PostgreSQL | En desarrollo | Migración Supabase · ensayo local | [Lecturas, cambio de nombre y duplicación de escenarios probados; operaciones financieras y resto de rutas pendientes](HU-60_Backend_PostgreSQL.md) |
 | HU-61 | Guardar archivos nuevos en Supabase Storage | Pendiente | Migración Supabase | Sin implementación |
 | HU-62 | Migrar documentos históricos de R2 | Pendiente | Migración Supabase | Sin implementación |
 | HU-63 | Consultar la información desde el panel de Supabase | Pendiente | Migración Supabase | Sin implementación |
@@ -391,3 +391,5 @@ HU-58: correcciones de autorización, 25 comprobaciones de lógica y 28 pruebas 
 HU-60, 11 de octubre: lecturas del propietario integradas a PostgreSQL mediante RPC con RLS e instantánea consistente; 11 pruebas HTTP con 1.201 facturas, 45 comprobaciones SQL locales y 45 de reconstrucción. Vista previa local desactivada al concluir; sin publicación ni cambios productivos. [Detalle](HU-60_Backend_PostgreSQL.md).
 
 HU-60, segunda entrega del 11 de octubre: cambio de nombre con motivo, respaldo previo, auditoría atómica, control de versión e idempotencia. 15 pruebas HTTP y 58 comprobaciones SQL locales/reconstruidas aprobadas. Vista previa HTTP desactivada; pendientes guardado general, facturas, pagos y sus pantallas. [Detalle](HU-60_Backend_PostgreSQL.md).
+
+HU-60, tercera entrega del 11 de octubre: duplicación de escenarios con auditoría atómica, origen conservado, base aprobada intacta, control de versiones, idempotencia y límite concurrente de 50. 13 pruebas HTTP nuevas y 71 comprobaciones SQL locales/reconstruidas aprobadas. Vista previa HTTP desactivada; integración de pantalla y demás operaciones pendientes. [Detalle](HU-60_Backend_PostgreSQL.md).
