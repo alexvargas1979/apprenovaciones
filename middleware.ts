@@ -18,8 +18,8 @@ export async function middleware(req:NextRequest){
   const target=new URL('/ingresar',c.origin);target.searchParams.set('next',path+req.nextUrl.search);return finish(NextResponse.redirect(target));
  }
  // Only the two PostgreSQL read routes may reach their own local opt-in guard.
- // Every legacy API and all writes remain blocked for Supabase identities.
- if(path.startsWith('/api/')&&!(req.method==='GET'&&['/api/properties','/api/accounting'].includes(path)))return finish(NextResponse.json({error:'La migración de datos está pendiente. Tu sesión está activa.'},{status:503}));
+ // A narrow rename route has its own local write opt-in; other writes stay blocked.
+ if(path.startsWith('/api/')&&!((req.method==='GET'&&['/api/properties','/api/accounting'].includes(path))||(req.method==='PATCH'&&path==='/api/properties/name')))return finish(NextResponse.json({error:'La migración de datos está pendiente. Tu sesión está activa.'},{status:503}));
  if(path==='/'||path==='/equipo')return finish(NextResponse.redirect(new URL('/cuenta',c.origin)));
  return finish(response);
 }

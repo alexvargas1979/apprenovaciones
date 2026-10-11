@@ -36,7 +36,7 @@ const localBindingConfig = {
 
 export default defineConfig(async ({mode}) => {
   const localAuth = loadEnv(mode, process.cwd(), "");
-  const authVars = Object.fromEntries(["REHAB_AUTH_PROVIDER","SUPABASE_URL","SUPABASE_PUBLISHABLE_KEY","REHAB_APP_ORIGIN","REHAB_POSTGRES_READ_PREVIEW"].filter(k=>localAuth[k]).map(k=>[k,localAuth[k]]));
+  const authVars = Object.fromEntries(["REHAB_AUTH_PROVIDER","SUPABASE_URL","SUPABASE_PUBLISHABLE_KEY","REHAB_APP_ORIGIN","REHAB_POSTGRES_READ_PREVIEW","REHAB_POSTGRES_WRITE_PREVIEW"].filter(k=>localAuth[k]).map(k=>[k,localAuth[k]]));
   // Keep Wrangler and Miniflare state project-local. These are non-secret tool
   // settings; application environment belongs in ignored `.env*` files.
   process.env.WRANGLER_WRITE_LOGS ??= 'false';

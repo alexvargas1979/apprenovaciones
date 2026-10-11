@@ -147,7 +147,7 @@ Estado: **En desarrollo**. Prioridad: **P0**. Dependencias: HU-55, HU-58, HU-59.
 - [ ] Preservar control de versiones, conflictos, idempotencia y protección ante edición concurrente o recreación de propiedad eliminada; probar fallo intermedio con rollback.
 - [ ] Las operaciones normales usan identidad del usuario y permisos efectivos; no ejecutar todo con una clave privilegiada. Pruebas de contratos de todas las rutas y cálculos sin diferencias.
 
-[Avance HU-60](HU-60_Backend_PostgreSQL.md): dos lecturas HTTP integradas y probadas con PostgreSQL local; escrituras, colaboradores y demás rutas pendientes.
+[Avance HU-60](HU-60_Backend_PostgreSQL.md): dos lecturas HTTP y cambio de nombre con auditoría transaccional probados localmente; guardado general, operaciones financieras, colaboradores y demás rutas pendientes.
 
 ### HU-61 · Guardar archivos nuevos en Supabase Storage
 

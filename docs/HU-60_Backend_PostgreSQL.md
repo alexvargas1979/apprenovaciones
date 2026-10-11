@@ -1,6 +1,6 @@
 # HU-60 · Backend PostgreSQL
 
-11 de octubre de 2026. Estado: **En desarrollo**. Primer bloque: lectura de propiedades y contabilidad del propietario, implementada y probada en un ensayo local. No se habilitaron escrituras, no se conectaron todas las pantallas y no hubo cambios en producción.
+11 de octubre de 2026. Estado: **En desarrollo**. Lectura de propiedades/contabilidad y una primera escritura acotada —cambio de nombre con auditoría— implementadas y probadas localmente. No se conectaron todas las pantallas ni hubo cambios en producción. Las vistas previas HTTP están desactivadas al finalizar los ensayos.
 
 ## Implementación
 
@@ -14,7 +14,7 @@ Una sola sentencia SQL estable reúne propiedades, libro, cabeceras, líneas, di
 
 El adaptador `lib/postgres/workspace.ts` mantiene libros heredados incrustados y reconstruye los normalizados (`invoiceStorage=1`) con líneas y distribuciones. Usa los IDs y la propiedad de las columnas relacionales, conserva el historial, toma las versiones de las columnas temporales y calcula el resumen de preservación. Las propiedades conservan la proyección existente de ejecución de obra. No modifica la instantánea recibida.
 
-La respuesta HTTP incluye `readOnly: true` y encabezados sin caché. El middleware solo deja pasar estas dos lecturas hacia su verificación local. PUT/DELETE de propiedades, POST contable, rutas restantes y consultas de colaboradores con `grantId` permanecen bloqueadas; una identidad Supabase nunca llega a escrituras D1.
+La respuesta HTTP incluye `readOnly: true` y encabezados sin caché. El middleware deja pasar estas dos lecturas y la ruta acotada de cambio de nombre hacia sus verificaciones locales. PUT/DELETE de propiedades, POST contable, rutas restantes y consultas de colaboradores con `grantId` permanecen bloqueadas; una identidad Supabase nunca llega a escrituras D1.
 
 ## Verificación realizada
 
@@ -39,4 +39,33 @@ npm exec --yes --package=supabase@2.120.0 -- node scripts/migration/test-hu60-re
 
 HU-60 no está completada. Faltan transacciones para guardar propiedades, facturas, distribuciones, pagos y auditoría; control de versiones y solicitudes repetidas; borrado y retención; todas las demás rutas; las vistas completas por rol de HU-58; y pruebas funcionales de todos los módulos. No se ampliaron los permisos DML para evitar saltar esas reglas mientras se portan.
 
-El siguiente bloque debe implementar escritura y auditoría atómicas con pruebas de concurrencia y reversión, y conservar los tokens de versión heredados detectados en HU-59. El corte productivo también depende del respaldo íntegro, identidades verificadas y conciliación real de HU-53/57/59.
+El siguiente bloque debe extender la escritura y auditoría atómicas al resto de operaciones y conservar los tokens de versión heredados detectados en HU-59. El corte productivo también depende del respaldo íntegro, identidades verificadas y conciliación real de HU-53/57/59.
+
+
+## Segunda entrega · Cambio de nombre transaccional
+
+`PATCH /api/properties/name` admite únicamente `id`, `version`, `name`, `reason` y `requestId`. Verifica la sesión, el origen exacto y la opción local `REHAB_POSTGRES_WRITE_PREVIEW=1`. No recibe actor ni propietario del cliente. El motivo es obligatorio. Las versiones deben tener zona explícita y se envían sin redondear microsegundos.
+
+La RPC `rename_owned_property` llama una función interna en `access_private`: obtiene el propietario de `auth.uid()`, bloquea la fila propia, comprueba versión y registro de eliminación, preserva el respaldo/saldos iniciales cuando todavía no existe proyecto, cambia únicamente el nombre, agrega el historial de identidad y registra la auditoría. Todo ocurre en una transacción. No acepta JSON arbitrario ni modifica importes, aprobación, pagos o presupuesto. No se conceden permisos DML directos.
+
+La función interna usa SECURITY DEFINER con alcance explícito para permitir únicamente esa operación y su auditoría sin abrir las tablas a modificaciones directas. No está en un esquema expuesto; EXECUTE está restringido, `search_path` es vacío, la zona horaria es UTC y la función pública usa SECURITY INVOKER. La protección de propietario y la validación también se ejecutan dentro de PostgreSQL, por lo que llamar la RPC directamente no permite omitirlas. La opción de vista previa limita el endpoint HTTP; no sustituye los permisos de la RPC, que existe en la base local una vez aplicada la migración.
+
+El identificador de solicitud queda ligado al propietario y al comando en el registro de auditoría. Reintentar el mismo comando devuelve el resultado original sin duplicarlo; reutilizarlo con datos distintos causa conflicto. Un bloqueo por solicitud y otro por propiedad resuelven envíos simultáneos. Una edición con versión antigua responde 409. El actor y la fecha se generan en la base. El respaldo previo ya existente se conserva; si se crea por primera vez desde PostgreSQL, contiene su JSON canónico, no pretende reconstruir los bytes originales de D1 que debe conservar HU-53/59.
+
+Validación de esta entrega:
+
+- 15 pruebas HTTP/API aprobadas: origen, identidad, motivo, actualización, repetición con zona equivalente, conflicto por solicitud/versión, carreras de edición y de reintento, auditoría única, respaldo/saldo, importes intactos, RPC anónima y escritura directa bloqueadas.
+- 13 comprobaciones SQL nuevas, incluidas auditoría y respaldo atómicos. Un trigger temporal provocó un fallo de auditoría y se comprobó que el nombre y la creación del respaldo/proyecto se revierten por completo; el trigger desaparece con el rollback del ensayo.
+- 58 comprobaciones SQL locales y las mismas 58 al reconstruir las migraciones. TypeScript aprobado y advisors sin advertencias ni errores.
+- Con la opción retirada y el servidor reiniciado, el endpoint autenticado devuelve 503: la vista previa HTTP queda apagada.
+
+Migración local: `20261011172554_hu60_property_name_transaction.sql`. No hay cambio de interfaz todavía: el editor general sigue usando PUT y permanece bloqueado con Supabase. Para probar esta operación se usa el endpoint acotado, no la pantalla de edición.
+
+```sh
+# Con REHAB_POSTGRES_WRITE_PREVIEW=1 en .env.local y servidor local reiniciado:
+npm exec --yes --package=supabase@2.120.0 -- node scripts/migration/test-hu60-write.mjs
+# Retirar la opción, reiniciar el servidor y comprobar el bloqueo:
+npm exec --yes --package=supabase@2.120.0 -- node scripts/migration/test-hu60-write.mjs --expect-disabled
+```
+
+HU-60 sigue En desarrollo. Esta transacción no equivale a haber portado el guardado completo de propiedades, facturas o pagos, y no resuelve todavía los tokens `fecha-UUID` heredados de HU-59. Producción no fue modificada.
