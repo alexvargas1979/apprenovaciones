@@ -49,3 +49,11 @@ npm exec --yes --package=supabase@2.120.0 -- node scripts/migration/test-hu58-rl
 ## Trabajo pendiente
 
 Completar las proyecciones por rol equivalentes a `lib/team.ts`, conectar las vistas y comprobar todos sus campos; implementar las acciones de gastos con las reglas de `lib/expense-access.ts` dentro de las transacciones de HU-60; ampliar las pruebas por acción y rol antes de cerrar HU-58. La migración real HU-59 también depende de completar el respaldo de HU-53 y la vinculación de identidades de HU-57. Ninguna prueba local sustituye esos requisitos.
+
+## Avance del 11 de octubre de 2026
+
+Se reforzaron también las funciones de autorización de la aplicación actual: un rol desconocido ya no cae en la vista de Analista; una factura con clasificación vacía no satisface el permiso de centros por una comprobación sobre un arreglo vacío. Se rechazan créditos con referencias rotas/circulares y consultas con concesiones pendientes, revocadas o sin permisos de gastos. `allCenters` sigue limitado a las propiedades autorizadas.
+
+Pasaron 25 comprobaciones de lógica que cubren los cuatro roles, los seis permisos de gastos y casos de denegación. La suite contra Auth/Data API local pasó **28 pruebas**, ampliando las 18 anteriores con todos los roles, rol nulo/desconocido, invitaciones pendientes y permisos ausentes/desconocidos. Pasaron asimismo TypeScript y las regresiones de clasificación, compras, aprobación, pagos delegados y gastos recurrentes.
+
+Las proyecciones completas de `teamProperty` se verificaron en TypeScript; las RPC de PostgreSQL siguen entregando los resúmenes limitados descritos arriba. **La equivalencia de las pantallas y las acciones transaccionales todavía no está implementada: HU-58 continúa En desarrollo**, coordinada con HU-60. No se publicaron estos cambios en Sites.

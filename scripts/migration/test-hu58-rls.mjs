@@ -47,6 +47,35 @@ try{
  sql(`update public.team_members set payload=jsonb_set(payload,'{expenses,allCenters}','true') where id=${q(g)};`);
  r=await m.rpc('shared_invoice_summary',{grant_id:g,invoice_id:ih});assert.ifError(r.error);assert.equal(r.data.total,11);pass('explicit all-centers grant permits summary');
  r=await m.rpc('shared_invoice_summary',{grant_id:g,invoice_id:i2});assert.ifError(r.error);assert.equal(r.data,null);pass('all-centers never expands property scope');
+ // Exercise every recognized role and reject malformed roles without broadening fields.
+ for(const role of ['Analista','Responsable de obra','Administración','Contratista']){
+  sql(`update public.team_members set payload=jsonb_set(payload,'{role}',${q(JSON.stringify(role))}) where id=${q(g)};`);
+  r=await m.rpc('shared_property_summary',{grant_id:g,property_id:p1});assert.ifError(r.error);assert.equal(r.data.role,role);
+  assert(!JSON.stringify(r.data).includes('PRIVATE'));assert(!JSON.stringify(r.data).includes('SECRET'));
+  if(role==='Responsable de obra')assert.equal(r.data.tasks.length,2);
+  if(role==='Contratista')assert.equal(r.data.tasks.length,1);
+  if(role==='Analista'||role==='Administración')assert.equal(r.data.tasks,undefined);
+  pass('limited database summary for '+role);
+ }
+ for(const role of [null,'Unknown']){
+  sql(`update public.team_members set payload=jsonb_set(payload,'{role}',${q(JSON.stringify(role))}) where id=${q(g)};`);
+  r=await m.rpc('shared_property_summary',{grant_id:g,property_id:p1});assert.ifError(r.error);assert.equal(r.data,null);
+  pass('invalid role denied: '+String(role));
+ }
+ sql(`update public.team_members set payload=jsonb_set(payload,'{role}','"Contratista"') where id=${q(g)};`);
+ for(const state of ['Invitación','Por aprobar']){
+  sql(`update public.team_members set payload=jsonb_set(payload,'{status}',${q(JSON.stringify(state))}) where id=${q(g)};`);
+  for(const [rpc,args] of [['shared_property_summary',{grant_id:g,property_id:p1}],['shared_invoice_summary',{grant_id:g,invoice_id:i1}]]){
+   r=await m.rpc(rpc,args);assert.ifError(r.error);assert.equal(r.data,null);
+  }pass('pending grant cannot read: '+state);
+ }
+ sql(`update public.team_members set payload=jsonb_set(payload,'{status}','"Activo"') where id=${q(g)};`);
+ for(const permissions of [[],['unknown']]){
+  sql(`update public.team_members set payload=jsonb_set(payload,'{expenses,permissions}',${q(JSON.stringify(permissions))}) where id=${q(g)};`);
+  r=await m.rpc('shared_invoice_summary',{grant_id:g,invoice_id:i1});assert.ifError(r.error);assert.equal(r.data,null);
+  pass('absent or unknown expense permission denied');
+ }
+ sql(`update public.team_members set payload=jsonb_set(payload,'{expenses,permissions}','["draft"]') where id=${q(g)};`);
  sql(`update public.team_members set payload=jsonb_set(payload,'{status}','"Revocado"') where id=${q(g)};`);
  for(const [rpc,args] of [['shared_property_summary',{grant_id:g,property_id:p1}],['shared_invoice_summary',{grant_id:g,invoice_id:i1}]]){r=await m.rpc(rpc,args);assert.ifError(r.error);assert.equal(r.data,null);}pass('revocation effective immediately with same access token');
  r=await a.from('properties').update({payload:{name:'bypass'}}).eq('id',p1);assert(r.error);pass('direct writes blocked even for owner');

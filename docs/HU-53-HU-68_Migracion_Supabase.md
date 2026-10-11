@@ -1,6 +1,6 @@
 # HU-53 a HU-68 · Migración a Supabase
 
-Fecha: 10 de octubre de 2026. Estado: HU-53 y HU-54 en desarrollo; HU-55 a HU-57 en verificación local; HU-58 en desarrollo; HU-59 a HU-68 pendientes. Producción reservada; ensayos locales. No se han movido datos productivos ni cambiado la autenticación. [Avance y bloqueos](HU-53-HU-54_Inicio_migracion.md).
+Fecha: 11 de octubre de 2026. Estado: HU-53 y HU-54 en desarrollo; HU-55 a HU-57 en verificación local; HU-58 y HU-59 en desarrollo; HU-60 a HU-68 pendientes. Producción reservada; ensayos locales. No se han movido datos productivos ni cambiado la autenticación. [Avance y bloqueos](HU-53-HU-54_Inicio_migracion.md).
 
 ## Objetivo y alcance
 
@@ -127,12 +127,14 @@ Estado: **En desarrollo**. Prioridad: **P0**. Dependencias: HU-55, HU-57.
 
 Como **administrador**, quiero **trasladar el historial sin perder ni duplicar registros**, para operar la plataforma con continuidad y control.
 
-Estado: **Pendiente**. Prioridad: **P0**. Dependencias: HU-53, HU-55, HU-57, HU-58.
+Estado: **En desarrollo**. Prioridad: **P0**. Dependencias: HU-53, HU-55, HU-57, HU-58.
 
 - [ ] Importación por lotes, reanudable e idempotente; registrar ejecución y cuarentena de errores. Repetir importación no duplica facturas, pagos, escenarios ni auditoría.
 - [ ] Incluir propiedades, respaldos, escenarios, presupuestos, libro contable, proveedores, equipo, facturas normalizadas o heredadas, borradores, reportes y registros de eliminación existentes.
 - [ ] Conciliar cantidades por tabla y propietario, sumas de presupuesto/gasto/pagos/saldo por propiedad a precisión monetaria definida; cero diferencias no justificadas y cero huérfanos.
 - [ ] Conservar claves y trazabilidad de cada origen; ensayar restauración completa y documentar duración. No dar por completada con solo importar una muestra.
+
+[Ensayo de HU-59 y pendientes](HU-59_Importacion_y_conciliacion.md): plan estricto para 20 tablas, repetición idempotente, reversión y restauración comprobadas con datos sintéticos. Importación real, checkpoints y conciliación funcional completa pendientes.
 
 ### HU-60 · Adaptar las operaciones del backend a PostgreSQL
 
