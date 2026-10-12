@@ -43,3 +43,20 @@ assert.equal(scenarioSummary({ result: { missing: [] } }).checksRecorded, true);
 console.log(
   'PASS historical summary preserves zero/negative values, rejects invalid numbers, identifies missing checks and never mutates snapshots',
 );
+
+const stress = scenarioSummary({
+  sourceStress: {
+    name: 'Conservador',
+    arvChange: -0.05,
+    delay: 2,
+    rateDelta: 0.01,
+    vacancy: 0.1,
+    rehabChange: 'bad',
+  },
+}).sourceStress!;
+assert.equal(stress.name, 'Conservador');
+assert.equal(stress.adjustments.arvChange, -0.05);
+assert.equal(stress.adjustments.delay, 2);
+assert.equal(stress.adjustments.rehabChange, null);
+assert.equal(scenarioSummary({}).sourceStress, null);
+console.log('PASS stress adjustments projected without coercion');

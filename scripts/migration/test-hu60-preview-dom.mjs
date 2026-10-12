@@ -41,6 +41,10 @@ const initial = () => ({
   scenarios: [
     { id: 's1', label: 'Base original', created_at: '2026-10-11T00:00:00Z' },
   ],
+  stressOptions: [
+    { index: 0, name: 'Conservador' },
+    { index: 1, name: 'Adverso' },
+  ],
   baseId: 's1',
   calls: [],
   receipts: new Map(),
@@ -165,6 +169,7 @@ try {
           scenario: {
             id: scenarioId,
             label: 'Histórico original',
+            sourceStress: state.sourceStress ?? null,
             createdAt: '2026-10-11T00:00:00Z',
             metrics: {
               purchase: 0,
@@ -187,6 +192,7 @@ try {
         version: '2026-10-11T00:00:00.000002Z',
         bookVersion: null,
         baseId: state.baseId,
+        stressOptions: state.stressOptions,
         scenarios: id === 'p1' ? state.scenarios : [],
       });
     };
@@ -360,6 +366,47 @@ try {
   await mount({ state: { baseId: null }, writable: false });
   assert(field('Nombre de la base').matches(':disabled'));
   pass('approval disabled in read-only mode');
+  await mount();
+  await fill('Prueba registrada', '1');
+  await fill('Nombre del escenario de estrés', 'Salida adversa');
+  await click('Guardar prueba de estrés');
+  assert.equal(state.calls[0].url, '/api/scenarios/stress');
+  assert.equal(state.calls[0].body.stressIndex, 1);
+  assert(!('sourceStress' in state.calls[0].body));
+  assert(document.body.textContent.includes('Prueba de estrés guardada.'));
+  pass('stress form sends registered index only');
+  await mount({ state: { stressOptions: [] } });
+  assert(field('Nombre del escenario de estrés').matches(':disabled'));
+  assert(
+    document.body.textContent.includes('No hay pruebas de estrés configuradas'),
+  );
+  pass('no configured stress disables form');
+  await mount({ writable: false });
+  assert(field('Nombre del escenario de estrés').matches(':disabled'));
+  pass('stress form disabled in read-only mode');
+  await mount({
+    state: {
+      sourceStress: {
+        name: 'Conservador',
+        adjustments: {
+          arvChange: -0.05,
+          rehabChange: 0.1,
+          delay: 2,
+          rateDelta: 0.01,
+          rentChange: -0.05,
+          vacancy: 0.1,
+          refiChange: -0.05,
+        },
+      },
+    },
+  });
+  await click('Ver detalle: Base original');
+  assert(document.body.textContent.includes('Prueba aplicada: Conservador'));
+  assert(document.body.textContent.includes('Retraso (meses)'));
+  assert(
+    document.body.textContent.includes('Cambio de tasa (puntos porcentuales)'),
+  );
+  pass('historical stress details identify applied adjustments');
   console.log(
     JSON.stringify({ checks, transport: 'simulated', visual_tested: false }),
   );

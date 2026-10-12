@@ -93,6 +93,43 @@ export default function ScenarioDetail({
                 : 'Fecha no disponible'}
             </time>
           </p>
+          {data.sourceStress && (
+            <div>
+              <h4>Prueba aplicada: {data.sourceStress.name}</h4>
+              <dl className={styles.metrics}>
+                {Object.entries({
+                  arvChange: 'Cambio de ARV',
+                  rehabChange: 'Cambio de obra',
+                  delay: 'Retraso (meses)',
+                  rateDelta: 'Cambio de tasa (puntos porcentuales)',
+                  rentChange: 'Cambio de renta',
+                  vacancy: 'Vacancia',
+                  refiChange: 'Cambio de valor de refinanciamiento',
+                }).map(([k, label]) => {
+                  const value =
+                    data.sourceStress!.adjustments[
+                      k as keyof typeof data.sourceStress.adjustments
+                    ];
+                  return (
+                    <div key={k}>
+                      <dt>{label}</dt>
+                      <dd>
+                        {value === null
+                          ? 'No registrado'
+                          : k === 'delay'
+                            ? value
+                            : k === 'rateDelta'
+                              ? new Intl.NumberFormat('es-US', {
+                                  maximumFractionDigits: 2,
+                                }).format(value * 100)
+                              : percent.format(value)}
+                      </dd>
+                    </div>
+                  );
+                })}
+              </dl>
+            </div>
+          )}
           <dl className={styles.metrics}>
             {Object.entries(labels).map(([key, label]) => {
               const value = data.metrics[key as keyof typeof labels];

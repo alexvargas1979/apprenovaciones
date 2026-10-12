@@ -26,7 +26,32 @@ export function scenarioSummary(payload: unknown) {
   ) as Record<(typeof metricKeys)[number], number | null>;
   const strings = (v: unknown) =>
     Array.isArray(v) ? v.filter((s): s is string => typeof s === 'string') : [];
+  const rawStress = record(saved.sourceStress);
+  const stressKeys = [
+    'arvChange',
+    'rehabChange',
+    'delay',
+    'rateDelta',
+    'rentChange',
+    'vacancy',
+    'refiChange',
+  ] as const;
+  const sourceStress =
+    typeof rawStress.name === 'string'
+      ? {
+          name: rawStress.name,
+          adjustments: Object.fromEntries(
+            stressKeys.map((k) => [
+              k,
+              typeof rawStress[k] === 'number' && Number.isFinite(rawStress[k])
+                ? rawStress[k]
+                : null,
+            ]),
+          ) as Record<(typeof stressKeys)[number], number | null>,
+        }
+      : null;
   return {
+    sourceStress,
     metrics,
     missing: strings(result.missing),
     warnings: strings(result.warnings),

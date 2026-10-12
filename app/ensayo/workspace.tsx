@@ -9,6 +9,7 @@ type Property = {
   updatedAt: string;
 };
 type Versions = {
+  stressOptions?: { index: number; name: string }[];
   propertyId: string;
   version: string;
   bookVersion: string | null;
@@ -37,6 +38,8 @@ export default function Workspace({ writable }: { writable: boolean }) {
     [versions, setVersions] = useState<Versions | null>(null);
   const [detailId, setDetailId] = useState('');
   const [saveLabel, setSaveLabel] = useState('');
+  const [stressLabel, setStressLabel] = useState(''),
+    [stressIndex, setStressIndex] = useState('');
   const [approveLabel, setApproveLabel] = useState(''),
     [confirmApproval, setConfirmApproval] = useState(false);
   const [name, setName] = useState(''),
@@ -78,6 +81,12 @@ export default function Workspace({ writable }: { writable: boolean }) {
       setReason('');
       setLabel('');
       setSaveLabel('');
+      setStressLabel('');
+      setStressIndex(
+        result.stressOptions?.length
+          ? String(result.stressOptions[0].index)
+          : '',
+      );
       setApproveLabel('');
       setConfirmApproval(false);
       setSource(result.scenarios[0]?.id || '');
@@ -92,7 +101,9 @@ export default function Workspace({ writable }: { writable: boolean }) {
       active = false;
     };
   }, [selected, revision]);
-  async function mutate(kind: 'name' | 'duplicate' | 'save' | 'approve') {
+  async function mutate(
+    kind: 'name' | 'duplicate' | 'save' | 'approve' | 'stress',
+  ) {
     if (
       !writable ||
       loading ||
@@ -103,6 +114,11 @@ export default function Workspace({ writable }: { writable: boolean }) {
     )
       return;
     if (kind === 'approve' && (!confirmApproval || versions.baseId)) return;
+    if (
+      kind === 'stress' &&
+      !versions.stressOptions?.some((s) => s.index === Number(stressIndex))
+    )
+      return;
     setBusy(true);
     setError('');
     setNotice('');
@@ -113,7 +129,9 @@ export default function Workspace({ writable }: { writable: boolean }) {
           ? '/api/scenarios/save'
           : kind === 'approve'
             ? '/api/scenarios/approve'
-            : '/api/scenarios/duplicate';
+            : kind === 'stress'
+              ? '/api/scenarios/stress'
+              : '/api/scenarios/duplicate';
     const body =
       kind === 'name'
         ? {
@@ -132,8 +150,11 @@ export default function Workspace({ writable }: { writable: boolean }) {
                 ? saveLabel.trim()
                 : kind === 'approve'
                   ? approveLabel.trim()
-                  : label.trim(),
+                  : kind === 'stress'
+                    ? stressLabel.trim()
+                    : label.trim(),
             ...(kind === 'approve' ? { confirm: true } : {}),
+            ...(kind === 'stress' ? { stressIndex: Number(stressIndex) } : {}),
           };
     const key = JSON.stringify({ url, body });
     const requestId = pending.current.get(key) ?? crypto.randomUUID();
@@ -152,7 +173,9 @@ export default function Workspace({ writable }: { writable: boolean }) {
             ? 'Nuevo escenario guardado.'
             : kind === 'approve'
               ? 'Base aprobada y conservada.'
-              : 'Escenario duplicado. La base aprobada se conserva.',
+              : kind === 'stress'
+                ? 'Prueba de estrés guardada. La base aprobada se conserva.'
+                : 'Escenario duplicado. La base aprobada se conserva.',
       );
       setVersions(null);
       setRevision((v) => v + 1);
@@ -371,6 +394,64 @@ export default function Workspace({ writable }: { writable: boolean }) {
                     </fieldset>
                   </form>
                 )}
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    void mutate('stress');
+                  }}
+                >
+                  <h4>Guardar prueba de estrés</h4>
+                  <p>
+                    Aplica los ajustes registrados a una nueva versión, sin
+                    modificar la propiedad ni su base aprobada.
+                  </p>
+                  {versions && !versions.stressOptions?.length && (
+                    <p>No hay pruebas de estrés configuradas en el análisis.</p>
+                  )}
+                  <fieldset
+                    disabled={
+                      !writable ||
+                      busy ||
+                      loading ||
+                      !versions ||
+                      !versions.stressOptions?.length ||
+                      versions.scenarios.length >= 50
+                    }
+                  >
+                    <label>
+                      Prueba registrada
+                      <select
+                        value={stressIndex}
+                        onChange={(e) => setStressIndex(e.target.value)}
+                        required
+                      >
+                        <option value="" disabled>
+                          Selecciona una prueba
+                        </option>
+                        {versions?.stressOptions?.map((s) => (
+                          <option key={s.index} value={s.index}>
+                            {s.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Nombre del escenario de estrés
+                      <input
+                        value={stressLabel}
+                        onChange={(e) => setStressLabel(e.target.value)}
+                        required
+                        maxLength={100}
+                      />
+                    </label>
+                    <button
+                      type="submit"
+                      disabled={!stressLabel.trim() || stressIndex === ''}
+                    >
+                      Guardar prueba de estrés
+                    </button>
+                  </fieldset>
+                </form>
                 <p>Una copia conserva los cálculos del escenario original.</p>
                 {versions && !versions.scenarios.length && (
                   <p>No hay escenarios guardados para duplicar.</p>

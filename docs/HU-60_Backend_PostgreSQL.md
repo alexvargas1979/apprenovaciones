@@ -211,3 +211,29 @@ Validación:
 Prueba reproducible: `node scripts/migration/test-hu60-approve.mjs` con el servidor y las opciones locales de la entrega anterior; `--expect-disabled` verifica el bloqueo final. La aprobación usa la misma clave local de servidor, nunca una clave pública ni configuración enviada al navegador.
 
 HU-60 permanece En desarrollo. Siguiente bloque: pruebas de estrés de escenarios; siguen pendientes edición general del expediente/supuestos, escrituras contables, tokens heredados y validación visual completa.
+
+
+## Novena entrega · Guardado de pruebas de estrés
+
+12 de octubre de 2026. La pantalla local permite seleccionar una prueba de estrés previamente configurada en el análisis y guardarla con un nombre. No permite introducir parámetros arbitrarios desde este formulario. El selector se desactiva cuando no hay pruebas, la vista es de sólo lectura o se alcanza el máximo de versiones.
+
+`POST /api/scenarios/stress` recibe propiedad, versiones, nombre, requestId e índice de la prueba (0–5). El servicio compartido trabaja con modos explícitos `save`, `approve` y `stress`. Lee los supuestos guardados, valida el análisis y aplica el mismo `stressProperty` y motor que el flujo original. Conserva en `sourceStress` los ajustes originales; no modifica la propiedad ni la base aprobada. Los resultados pueden contener datos pendientes, visibles en el detalle histórico; una prueba de estrés no equivale a una aprobación.
+
+La RPC de servidor `stress_computed_scenario` comprueba identidad/propietario/versiones, índice y correspondencia de `sourceStress` con la prueba almacenada. Guarda escenario y auditoría en una transacción, con el límite concurrente de 50 y recibo de reintento que incluye el índice elegido. Sólo la cuenta de servidor puede invocarla; no se ampliaron escrituras directas de tablas. Los permisos y límites locales existentes permanecen activos.
+
+El listado devuelve nombres e índices disponibles para el propietario. El detalle histórico muestra nombre de la prueba y ajustes de ARV, obra, retraso, tasa (puntos porcentuales), renta, vacancia y valor de refinanciamiento; los valores ausentes no se convierten en cero.
+
+Migración `20261012211142_hu60_scenario_stress.sql`, generada con `db pull --local` después de aplicar SQL y revisar advisors sin incidencias. Supabase local se inició nuevamente para el ensayo. No se utilizaron servicios remotos ni datos reales.
+
+Validación:
+
+- 11 comprobaciones SQL adicionales; total 101 locales y 101 al reconstruir las migraciones. Incluyen permisos, versiones, idempotencia, índice, auditoría y reversión.
+- 18 pruebas HTTP de estrés: selección inválida/inexistente, identidad/origen, rechazo de resultados/actor inyectados, cálculo esperado, trazabilidad, conservación de propiedad/base, lectura del detalle, RPC directa denegada, reintentos y concurrencia/límite de 50.
+- 14 regresiones HTTP de guardado y 17 de aprobación aprobadas.
+- 24 comprobaciones React/jsdom aprobadas, incluidas selección/guardado de estrés, ausencia de pruebas, sólo lectura y presentación de ajustes históricos. Transporte simulado: revisión visual en navegador pendiente.
+- Proyección histórica, TypeScript y build aprobados. Ensayo HU-59 de 20 tablas/20 filas con restauración y reversión aprobado. La clave de servidor no está en el build.
+- Opciones y clave temporal retiradas; servidor reiniciado para comprobar que estrés autenticado devuelve 503. Cuentas y datos ficticios eliminados. Producción intacta.
+
+Prueba reproducible: `node scripts/migration/test-hu60-stress.mjs` con opciones y clave local del servidor; `--expect-disabled` verifica el bloqueo al terminar.
+
+HU-60 sigue En desarrollo. Guardar, duplicar, aprobar y guardar estrés ya tienen rutas locales y controles propios. Restan edición general del expediente y supuestos, operaciones contables, tokens de versiones heredados, integración completa y revisión visual.

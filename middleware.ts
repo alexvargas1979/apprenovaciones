@@ -19,7 +19,7 @@ export async function middleware(req:NextRequest){
  }
  // PostgreSQL preview reads enforce their own local opt-in guard.
  // Narrow rename and scenario-copy routes enforce their local write opt-in.
- if(path.startsWith('/api/')&&!((req.method==='GET'&&['/api/properties','/api/accounting','/api/preview/scenarios'].includes(path))||(req.method==='PATCH'&&path==='/api/properties/name')||(req.method==='POST'&&['/api/scenarios/duplicate','/api/scenarios/save','/api/scenarios/approve'].includes(path))))return finish(NextResponse.json({error:'La migración de datos está pendiente. Tu sesión está activa.'},{status:503}));
+ if(path.startsWith('/api/')&&!((req.method==='GET'&&['/api/properties','/api/accounting','/api/preview/scenarios'].includes(path))||(req.method==='PATCH'&&path==='/api/properties/name')||(req.method==='POST'&&['/api/scenarios/duplicate','/api/scenarios/save','/api/scenarios/approve','/api/scenarios/stress'].includes(path))))return finish(NextResponse.json({error:'La migración de datos está pendiente. Tu sesión está activa.'},{status:503}));
  if(path==='/'||path==='/equipo')return finish(NextResponse.redirect(new URL('/cuenta',c.origin)));
  return finish(response);
 }

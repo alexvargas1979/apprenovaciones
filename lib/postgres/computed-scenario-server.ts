@@ -7,6 +7,7 @@ import { readPostgresWorkspace } from '@/lib/postgres/read-server';
 import { attachExecution } from '@/lib/accounting-server';
 import {
   calculateFlip,
+  stressProperty,
   validateInvestment,
   ENGINE_VERSION,
 } from '@/lib/investment';
@@ -20,7 +21,12 @@ const conflict = () =>
     },
     { status: 409, headers: { 'Cache-Control': 'no-store' } },
   );
-export async function computedScenario(req: Request, approve = false) {
+export async function computedScenario(
+  req: Request,
+  mode: 'save' | 'approve' | 'stress' = 'save',
+) {
+  const approve = mode === 'approve',
+    stress = mode === 'stress';
   try {
     const actor = await getAppUser();
     if (!actor) throw Error('AUTH');
@@ -50,6 +56,7 @@ export async function computedScenario(req: Request, approve = false) {
             'label',
             'requestId',
             ...(approve ? ['confirm'] : []),
+            ...(stress ? ['stressIndex'] : []),
           ].includes(k),
       ) ||
       !['propertyId', 'version', 'label', 'requestId'].every(
@@ -61,6 +68,10 @@ export async function computedScenario(req: Request, approve = false) {
         (typeof b.bookVersion === 'string' && stamp.test(b.bookVersion))
       ) ||
       (approve && b.confirm !== true) ||
+      (stress &&
+        (!Number.isInteger(b.stressIndex) ||
+          b.stressIndex < 0 ||
+          b.stressIndex > 5)) ||
       !b.label.trim() ||
       b.label.trim().length > 100
     )
@@ -89,10 +100,15 @@ export async function computedScenario(req: Request, approve = false) {
       expected_book_version: b.bookVersion,
       label: b.label,
       request_id: b.requestId,
+      ...(stress ? { stress_index: b.stressIndex } : {}),
     };
     const invoke = async (snapshot: unknown = null) => {
       const { data, error } = await server.rpc(
-        approve ? 'approve_computed_scenario' : 'save_computed_scenario',
+        approve
+          ? 'approve_computed_scenario'
+          : stress
+            ? 'stress_computed_scenario'
+            : 'save_computed_scenario',
         {
           ...args,
           snapshot,
@@ -141,13 +157,19 @@ export async function computedScenario(req: Request, approve = false) {
       (workspace.version || null) !== b.bookVersion
     )
       return conflict();
-    const p = attachExecution(stored, workspace);
+    let p = attachExecution(stored, workspace);
     if (!p.investment)
       throw Error('La propiedad no tiene un análisis de inversión guardado.');
     validateInvestment(p.investment);
-    const result = calculateFlip(p, p.investment),
-      comparison = p.investment.comparison
-        ? compareExits(p, p.investment, p.investment.comparison)
+    const sourceStress = stress ? p.investment.stress[b.stressIndex] : null;
+    if (stress) {
+      if (!sourceStress) throw Error('Prueba de estrés no encontrada.');
+      p = stressProperty(p, b.stressIndex);
+    }
+    const investment = p.investment!;
+    const result = calculateFlip(p, investment),
+      comparison = investment.comparison
+        ? compareExits(p, investment, investment.comparison)
         : null;
     if (approve) {
       const missing = [...result.missing, ...(comparison?.errors ?? [])];
@@ -161,7 +183,7 @@ export async function computedScenario(req: Request, approve = false) {
       result,
       comparison,
       savedPropertyAt: stored.updatedAt,
-      sourceStress: null,
+      sourceStress,
     });
     if (saved.response) return saved.response;
     return Response.json(saved.data, {

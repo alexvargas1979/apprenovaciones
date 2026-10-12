@@ -70,6 +70,17 @@ export async function GET(req: Request) {
         bookVersion: workspace.version || null,
         baseId: baseline.data?.scenario_id ?? null,
         scenarios: scenarios.data,
+        stressOptions: Array.isArray(property.investment?.stress)
+          ? property.investment.stress
+              .slice(0, 6)
+              .map((s, index) => ({
+                index,
+                name:
+                  typeof s?.name === 'string'
+                    ? s.name
+                    : 'Prueba ' + (index + 1),
+              }))
+          : [],
       },
       { headers: { 'Cache-Control': 'no-store' } },
     );
