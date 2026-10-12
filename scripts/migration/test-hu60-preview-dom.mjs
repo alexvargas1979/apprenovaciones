@@ -41,6 +41,7 @@ const initial = () => ({
   scenarios: [
     { id: 's1', label: 'Base original', created_at: '2026-10-11T00:00:00Z' },
   ],
+  baseId: 's1',
   calls: [],
   receipts: new Map(),
   failWrite: false,
@@ -143,6 +144,7 @@ try {
           state.failWrite = false;
           throw Error('Respuesta perdida');
         }
+        if (url.includes('/approve')) state.baseId = body.requestId;
         return response({ id: body.requestId });
       }
       if (state.failRead) throw Error('Lectura no disponible');
@@ -184,7 +186,7 @@ try {
         propertyId: id,
         version: '2026-10-11T00:00:00.000002Z',
         bookVersion: null,
-        baseId: 's1',
+        baseId: state.baseId,
         scenarios: id === 'p1' ? state.scenarios : [],
       });
     };
@@ -338,6 +340,26 @@ try {
   await mount({ writable: false });
   assert(field('Nombre del nuevo escenario').matches(':disabled'));
   pass('new scenario form disabled in read-only mode');
+  await mount({ state: { baseId: null } });
+  await fill('Nombre de la base', 'Base revisada');
+  assert(button('Aprobar base del análisis').disabled);
+  await act(async () =>
+    field('Confirmo que revisé el análisis y deseo fijar esta base').click(),
+  );
+  assert(!button('Aprobar base del análisis').disabled);
+  await click('Aprobar base del análisis');
+  assert.equal(state.calls[0].url, '/api/scenarios/approve');
+  assert.equal(state.calls[0].body.confirm, true);
+  assert(document.body.textContent.includes('Base aprobada y conservada.'));
+  assert(
+    ![...document.querySelectorAll('button')].some(
+      (b) => b.textContent === 'Aprobar base del análisis',
+    ),
+  );
+  pass('approval requires confirmation and disappears once base is fixed');
+  await mount({ state: { baseId: null }, writable: false });
+  assert(field('Nombre de la base').matches(':disabled'));
+  pass('approval disabled in read-only mode');
   console.log(
     JSON.stringify({ checks, transport: 'simulated', visual_tested: false }),
   );

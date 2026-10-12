@@ -188,3 +188,26 @@ Validación de la entrega:
 Para ensayar localmente, configurar las dos opciones de vista previa y `SUPABASE_SECRET_KEY` del Supabase **local** en el archivo ignorado `.env.local`; nunca en `VITE_*`, componentes ni configuración versionada. El emulador de Workers carga el secreto desde ese archivo, sin añadirlo a las variables públicas de Vite. Ejecutar `scripts/migration/test-hu60-save.mjs` con el CLI local disponible; `--expect-disabled` comprueba el bloqueo al retirar las opciones. Al concluir esta entrega se retiraron esos tres valores temporales.
 
 HU-60 sigue En desarrollo. Pendientes: guardar/editar el expediente y sus supuestos de inversión, aprobar escenarios, pruebas de estrés, escrituras contables, versiones heredadas e integración completa. Esta entrega habilita guardar una nueva instantánea de un análisis previamente almacenado; no completa toda la migración.
+
+
+## Octava entrega · Aprobación de la base del análisis
+
+11 de octubre de 2026 (migración del 12 UTC). La pantalla local ofrece «Fijar la base del análisis» cuando no existe una base. Requiere nombre y confirmación explícita. Calcula una nueva versión con el análisis actual, igual que la aprobación del flujo original; no convierte automáticamente un escenario histórico seleccionado. Después de aprobar, el formulario desaparece y se identifica la base conservada. Se pueden seguir guardando versiones de pronóstico.
+
+`POST /api/scenarios/approve` reutiliza el servicio de cálculo de guardado, con `confirm: true` obligatorio y controles de sesión, origen, modo local, versiones y propietario. No acepta actor ni resultados del navegador. Rechaza los datos pendientes del motor y los errores de comparación de salidas antes de escribir.
+
+`approve_computed_scenario` sólo puede ejecutarse con la cuenta de servidor. Su función privada verifica además que el resultado registre `missing: []` y que la comparación, si existe, no tenga errores. En una transacción crea escenario, base y auditoría. El bloqueo de propiedad serializa las aprobaciones; una base existente causa conflicto y nunca se reemplaza. El recibo permite reintentos del mismo comando sin crear otro escenario, incluso después de una edición posterior. Los permisos directos de las tablas no se ampliaron.
+
+Migración `20261012002140_hu60_scenario_approve.sql`, generada localmente después de revisar advisors (sin incidencias). El servicio compartido está en `lib/postgres/computed-scenario-server.ts`; guardado y aprobación conservan sus endpoints separados.
+
+Validación:
+
+- 9 comprobaciones SQL nuevas: función restringida, análisis/comparación incompletos, fallo de auditoría con reversión de escenario y base, recibo, protección de base existente, auditoría única y falta de INSERT directo. Total 90 locales y 90 al reconstruir las migraciones.
+- 17 pruebas HTTP de aprobación: confirmación, datos pendientes, identidad/origen, inyección de actor/resultados, versiones, cálculo, reintento, RPC directa, base única y aprobaciones concurrentes.
+- 14 regresiones HTTP de guardado y 20 comprobaciones React/jsdom aprobadas. Estas últimas simulan el transporte; revisión visual y flujo integral de navegador aún pendientes.
+- TypeScript/build y ensayo HU-59 de 20 tablas/20 filas, reversión, repetición y restauración aprobados. Se verificó que la clave del servidor no aparezca en el build.
+- Opciones y clave temporal retiradas; después de reiniciar, la aprobación autenticada devuelve 503. Se eliminaron cuentas y datos ficticios. Producción no fue modificada.
+
+Prueba reproducible: `node scripts/migration/test-hu60-approve.mjs` con el servidor y las opciones locales de la entrega anterior; `--expect-disabled` verifica el bloqueo final. La aprobación usa la misma clave local de servidor, nunca una clave pública ni configuración enviada al navegador.
+
+HU-60 permanece En desarrollo. Siguiente bloque: pruebas de estrés de escenarios; siguen pendientes edición general del expediente/supuestos, escrituras contables, tokens heredados y validación visual completa.

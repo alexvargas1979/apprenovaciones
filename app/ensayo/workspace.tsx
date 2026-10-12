@@ -37,6 +37,8 @@ export default function Workspace({ writable }: { writable: boolean }) {
     [versions, setVersions] = useState<Versions | null>(null);
   const [detailId, setDetailId] = useState('');
   const [saveLabel, setSaveLabel] = useState('');
+  const [approveLabel, setApproveLabel] = useState(''),
+    [confirmApproval, setConfirmApproval] = useState(false);
   const [name, setName] = useState(''),
     [reason, setReason] = useState(''),
     [source, setSource] = useState(''),
@@ -76,6 +78,8 @@ export default function Workspace({ writable }: { writable: boolean }) {
       setReason('');
       setLabel('');
       setSaveLabel('');
+      setApproveLabel('');
+      setConfirmApproval(false);
       setSource(result.scenarios[0]?.id || '');
     })()
       .catch((e) => {
@@ -88,7 +92,7 @@ export default function Workspace({ writable }: { writable: boolean }) {
       active = false;
     };
   }, [selected, revision]);
-  async function mutate(kind: 'name' | 'duplicate' | 'save') {
+  async function mutate(kind: 'name' | 'duplicate' | 'save' | 'approve') {
     if (
       !writable ||
       loading ||
@@ -98,6 +102,7 @@ export default function Workspace({ writable }: { writable: boolean }) {
       versions.propertyId !== property.id
     )
       return;
+    if (kind === 'approve' && (!confirmApproval || versions.baseId)) return;
     setBusy(true);
     setError('');
     setNotice('');
@@ -106,7 +111,9 @@ export default function Workspace({ writable }: { writable: boolean }) {
         ? '/api/properties/name'
         : kind === 'save'
           ? '/api/scenarios/save'
-          : '/api/scenarios/duplicate';
+          : kind === 'approve'
+            ? '/api/scenarios/approve'
+            : '/api/scenarios/duplicate';
     const body =
       kind === 'name'
         ? {
@@ -120,7 +127,13 @@ export default function Workspace({ writable }: { writable: boolean }) {
             ...(kind === 'duplicate' ? { sourceId: source } : {}),
             version: versions.version,
             bookVersion: versions.bookVersion,
-            label: kind === 'save' ? saveLabel.trim() : label.trim(),
+            label:
+              kind === 'save'
+                ? saveLabel.trim()
+                : kind === 'approve'
+                  ? approveLabel.trim()
+                  : label.trim(),
+            ...(kind === 'approve' ? { confirm: true } : {}),
           };
     const key = JSON.stringify({ url, body });
     const requestId = pending.current.get(key) ?? crypto.randomUUID();
@@ -137,7 +150,9 @@ export default function Workspace({ writable }: { writable: boolean }) {
           ? 'Nombre guardado.'
           : kind === 'save'
             ? 'Nuevo escenario guardado.'
-            : 'Escenario duplicado. La base aprobada se conserva.',
+            : kind === 'approve'
+              ? 'Base aprobada y conservada.'
+              : 'Escenario duplicado. La base aprobada se conserva.',
       );
       setVersions(null);
       setRevision((v) => v + 1);
@@ -303,6 +318,59 @@ export default function Workspace({ writable }: { writable: boolean }) {
                     </button>
                   </fieldset>
                 </form>
+                {versions?.baseId ? (
+                  <p>
+                    La base aprobada ya está fijada y se conserva. Puedes
+                    guardar nuevas versiones para el pronóstico.
+                  </p>
+                ) : (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void mutate('approve');
+                    }}
+                  >
+                    <h4>Fijar la base del análisis</h4>
+                    <p>
+                      Se calculará una nueva versión con el análisis actual.
+                      Después de aprobarla, esta base no se reemplaza.
+                    </p>
+                    <fieldset
+                      disabled={
+                        !writable ||
+                        busy ||
+                        loading ||
+                        !versions ||
+                        versions.scenarios.length >= 50
+                      }
+                    >
+                      <label>
+                        Nombre de la base
+                        <input
+                          value={approveLabel}
+                          onChange={(e) => setApproveLabel(e.target.value)}
+                          maxLength={100}
+                          required
+                        />
+                      </label>
+                      <label className={styles.confirmation}>
+                        Confirmo que revisé el análisis y deseo fijar esta base
+                        <input
+                          type="checkbox"
+                          checked={confirmApproval}
+                          onChange={(e) => setConfirmApproval(e.target.checked)}
+                          required
+                        />
+                      </label>
+                      <button
+                        type="submit"
+                        disabled={!approveLabel.trim() || !confirmApproval}
+                      >
+                        Aprobar base del análisis
+                      </button>
+                    </fieldset>
+                  </form>
+                )}
                 <p>Una copia conserva los cálculos del escenario original.</p>
                 {versions && !versions.scenarios.length && (
                   <p>No hay escenarios guardados para duplicar.</p>

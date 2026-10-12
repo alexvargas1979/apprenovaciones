@@ -1,0 +1,283 @@
+import { createClient } from '@supabase/supabase-js';
+import { execFileSync } from 'node:child_process';
+import { randomUUID, randomBytes } from 'node:crypto';
+import assert from 'node:assert/strict';
+const cli = process.env.SUPABASE_CLI ?? 'supabase',
+  origin = 'http://127.0.0.1:3000';
+const cfg = JSON.parse(
+  execFileSync(cli, ['status', '-o', 'json'], {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  }),
+);
+assert.equal(cfg.API_URL, 'http://127.0.0.1:54321');
+const admin = createClient(cfg.API_URL, cfg.SERVICE_ROLE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  }),
+  users = [],
+  cookies = [],
+  clients = [],
+  prefix = 'hu60-scenario-' + randomUUID();
+const q = (s) => "'" + String(s).replaceAll("'", "''") + "'";
+const sql = (s) =>
+  execFileSync(
+    'docker',
+    [
+      'exec',
+      '-i',
+      'supabase_db_apprenovaciones-local',
+      'psql',
+      '-X',
+      '-q',
+      '-U',
+      'postgres',
+      '-d',
+      'postgres',
+      '-v',
+      'ON_ERROR_STOP=1',
+      '-At',
+    ],
+    { input: s, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] },
+  );
+let checks = 0;
+const pass = (s) => {
+  checks++;
+  console.log('PASS ' + s);
+};
+const patch = (data, cookie = cookies[0], from = origin) =>
+  fetch(origin + '/api/scenarios/approve', {
+    method: 'POST',
+    headers: {
+      cookie: cookie ?? '',
+      origin: from,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+try {
+  sql("notify pgrst,'reload schema';");
+  for (let i = 0; i < 2; i++) {
+    const email = prefix + i + '@example.invalid',
+      password = randomBytes(24).toString('hex');
+    const u = await admin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+    });
+    assert.ifError(u.error);
+    users.push(u.data.user.id);
+    const login = await fetch(origin + '/auth/login', {
+      method: 'POST',
+      headers: { origin, 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ email, password }),
+      redirect: 'manual',
+    });
+    assert.equal(login.status, 303);
+    cookies.push(
+      login.headers
+        .getSetCookie()
+        .map((c) => c.split(';')[0])
+        .join('; '),
+    );
+    const c = createClient(cfg.API_URL, cfg.PUBLISHABLE_KEY ?? cfg.ANON_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    assert.ifError(
+      (await c.auth.signInWithPassword({ email, password })).error,
+    );
+    clients.push(c);
+  }
+  const id = prefix + '-p',
+    version = '2026-10-11T00:00:00+00:00',
+    body = {
+      propertyId: id,
+      version,
+      bookVersion: null,
+      label: 'Approved',
+      confirm: true,
+      requestId: randomUUID(),
+    };
+  if (process.argv.includes('--expect-disabled')) {
+    assert.equal((await patch(body)).status, 503);
+    pass('save disabled by default');
+  } else {
+    const { build } = await import('esbuild');
+    const bundle = await build({
+      stdin: {
+        contents:
+          "export {fresh} from './lib/model';export {emptyInvestment,calculateFlip} from './lib/investment';",
+        resolveDir: process.cwd(),
+      },
+      bundle: true,
+      platform: 'node',
+      format: 'esm',
+      write: false,
+    });
+    const { fresh, emptyInvestment, calculateFlip } = await import(
+      'data:text/javascript;base64,' +
+        Buffer.from(bundle.outputFiles[0].text).toString('base64')
+    );
+    const property = fresh();
+    property.id = id;
+    property.investment = emptyInvestment(property);
+    Object.assign(property.investment, {
+      purchase: 100000,
+      arv: 180000,
+      purchaseDate: '2026-01-01',
+      saleDate: '2026-07-01',
+      costsReviewed: true,
+    });
+    property.investment.loan.type = 'Efectivo';
+    sql(
+      `insert into public.properties values (${q(id)},${q(users[0])},${q(JSON.stringify(property))},${q(version)});`,
+    );
+    const expected = calculateFlip(property, property.investment);
+    assert.deepEqual(expected.missing, []);
+    assert.equal((await patch({ ...body, confirm: false })).status, 400);
+    pass('explicit confirmation required');
+    sql(
+      `update public.properties set payload=jsonb_set(payload,'{investment,costsReviewed}','false') where id=${q(id)};`,
+    );
+    let incomplete = await patch(body);
+    assert.equal(incomplete.status, 400);
+    assert((await incomplete.json()).error.includes('requiere completar'));
+    pass('incomplete analysis cannot be approved');
+    sql(
+      `update public.properties set payload=jsonb_set(payload,'{investment,costsReviewed}','true') where id=${q(id)};`,
+    );
+    assert.equal((await patch(body, '')).status, 401);
+    pass('anonymous denied');
+    assert.equal(
+      (await patch(body, cookies[0], 'https://untrusted.example')).status,
+      403,
+    );
+    pass('origin checked');
+    assert.equal(
+      (await patch({ ...body, snapshot: { result: { profit: 999999 } } }))
+        .status,
+      400,
+    );
+    pass('client cannot inject result');
+    assert.equal((await patch({ ...body, actor: users[1] })).status, 400);
+    pass('client cannot inject actor');
+    assert.equal((await patch(body, cookies[1])).status, 403);
+    pass('foreign owner denied');
+    assert.equal(
+      (await patch({ ...body, version: '2020-01-01T00:00:00Z' })).status,
+      409,
+    );
+    pass('stale view denied');
+    let r = await patch(body);
+    assert.equal(r.status, 201, await r.clone().text());
+    const saved = await r.json();
+    pass('new scenario committed');
+    const stored = JSON.parse(
+      sql(
+        `select payload from public.analysis_scenarios where id=${q(saved.id)};`,
+      ),
+    );
+    assert.equal(stored.result.profit, expected.profit);
+    assert.equal(stored.property.id, id);
+    assert.equal(stored.engine, expected.engine);
+    pass('server computed expected figures');
+    sql(`update public.properties set updated_at=now() where id=${q(id)};`);
+    r = await patch(body);
+    assert.equal(r.status, 200, await r.clone().text());
+    assert.equal((await r.json()).id, saved.id);
+    pass('lost-response retry survives subsequent property edit');
+    assert.equal((await patch({ ...body, label: 'Different' })).status, 409);
+    pass('request identity cannot be repurposed');
+    const clientArgs = {
+      actor: users[0],
+      property_id: id,
+      expected_version: version,
+      expected_book_version: null,
+      label: 'Injected',
+      request_id: randomUUID(),
+      snapshot: stored,
+    };
+    assert(
+      (await clients[0].rpc('approve_computed_scenario', clientArgs)).error,
+    );
+    pass('authenticated direct computed RPC denied');
+    assert.equal(
+      sql(
+        `select count(*) from public.analysis_scenarios where property_id=${q(id)};`,
+      ).trim(),
+      '1',
+    );
+    assert.equal(
+      sql(
+        `select count(*) from public.audit_events where property_id=${q(id)};`,
+      ).trim(),
+      '1',
+    );
+    pass('single snapshot and audit');
+    const baseline = sql(
+      `select scenario_id from public.analysis_baselines where property_id=${q(id)};`,
+    ).trim();
+    assert.equal(baseline, saved.id);
+    pass('approved snapshot is the fixed baseline');
+    const currentVersion = '2026-10-11T02:00:00+00:00';
+    sql(
+      `update public.properties set updated_at=${q(currentVersion)} where id=${q(id)};`,
+    );
+    assert.equal(
+      (
+        await patch({
+          ...body,
+          version: currentVersion,
+          requestId: randomUUID(),
+          label: 'Replacement',
+        })
+      ).status,
+      409,
+    );
+    assert.equal(
+      sql(
+        `select scenario_id from public.analysis_baselines where property_id=${q(id)};`,
+      ).trim(),
+      baseline,
+    );
+    pass('existing base cannot be replaced');
+    const second = id + '2';
+    property.id = second;
+    sql(
+      `insert into public.properties values (${q(second)},${q(users[0])},${q(JSON.stringify(property))},${q(version)});`,
+    );
+    const race = await Promise.all(
+      ['First A', 'First B'].map((label) =>
+        patch({ ...body, propertyId: second, label, requestId: randomUUID() }),
+      ),
+    );
+    assert.deepEqual(race.map((r) => r.status).sort(), [201, 409]);
+    assert.equal(
+      sql(
+        `select count(*) from public.analysis_scenarios where property_id=${q(second)};`,
+      ).trim(),
+      '1',
+    );
+    assert.equal(
+      sql(
+        `select count(*) from public.analysis_baselines where property_id=${q(second)};`,
+      ).trim(),
+      '1',
+    );
+    pass('concurrent approvals create only one base and snapshot');
+  }
+  console.log(JSON.stringify({ checks, production_modified: false }));
+} finally {
+  for (const cookie of cookies)
+    await fetch(origin + '/auth/logout', {
+      method: 'POST',
+      headers: { cookie, origin },
+      redirect: 'manual',
+    });
+  for (const c of clients) await c.auth.signOut();
+  for (const id of users) {
+    sql(
+      `begin;delete from public.audit_events where user_id=${q(id)};delete from public.analysis_baselines where user_id=${q(id)};delete from public.analysis_scenarios where user_id=${q(id)};delete from public.accounting_books where user_id=${q(id)};delete from public.opening_balances where user_id=${q(id)};delete from public.investment_projects where user_id=${q(id)};delete from public.property_baselines where user_id=${q(id)};delete from public.properties where user_id=${q(id)};commit;`,
+    );
+    assert.ifError((await admin.auth.admin.deleteUser(id)).error);
+  }
+}
