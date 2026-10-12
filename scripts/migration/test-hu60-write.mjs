@@ -38,7 +38,7 @@ try{
  assert.equal(stored.audits,3);assert.equal(stored.original,'Original');assert.equal(stored.amount,.3);assert.equal(stored.payload.investment.purchase,100000);assert(stored.payload.dataHistory.every(h=>h.actor===users[0]));pass('audit, initial baseline, amount and financial fields preserved');
  assert((await clients[0].from('properties').update({payload:{name:'Bypass'}}).eq('id',id)).error);pass('direct table update still denied');
  const anon=createClient(cfg.API_URL,cfg.PUBLISHABLE_KEY??cfg.ANON_KEY,{auth:{persistSession:false}});assert((await anon.rpc('rename_owned_property',{property_id:id,expected_version:version,new_name:'Bad',reason:'Test',request_id:randomUUID()})).error);pass('anonymous direct RPC denied');
- assert.equal((await fetch(origin+'/api/accounting',{method:'POST',headers:{cookie:cookies[0],origin,'content-type':'application/json'},body:'{}'})).status,503);pass('general financial writes remain gated');
+ assert.equal((await fetch(origin+'/api/accounting',{method:'POST',headers:{cookie:cookies[0],origin,'content-type':'application/json'},body:'{}'})).status,409);pass('financial request without a book version is rejected');
  }
  console.log(JSON.stringify({checks,production_modified:false}));
 }finally{

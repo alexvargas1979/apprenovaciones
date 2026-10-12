@@ -1,3 +1,4 @@
+import {saveProperty} from '@/lib/postgres/property-server';
 import {authConfig} from '@/lib/auth/config';
 import {readPostgresWorkspace} from '@/lib/postgres/read-server';
 import {storedBook} from '@/lib/expense-storage';
@@ -20,7 +21,7 @@ export async function GET(){try{if(authConfig().provider==='supabase'){const dat
     preservation:await preservationSummary(db,uid)},{headers:{"Cache-Control":"no-store"}});
 }catch(e){return fail(e);}}
 
-export async function PUT(req:Request){try{
+export async function PUT(req:Request){if(authConfig().provider==='supabase')return saveProperty(req);try{
   const uid=await user(req);const text=await req.text();if(text.length>150000)throw Error("Propiedad demasiado grande");
   const parsed=JSON.parse(text),reason=typeof parsed.editReason==='string'?parsed.editReason.trim():'';delete parsed.editReason;const input=validateProperty(withoutRetiredImport(parsed));const db=rawDb();if(await db.prepare('SELECT id FROM property_deletions WHERE id=?').bind(input.id).first())return Response.json({error:'Esta propiedad fue eliminada. Crea un expediente nuevo.'},{status:409});
   const previous=await db.prepare('SELECT payload,updated_at FROM properties WHERE id=? AND user_id=?').bind(input.id,uid).first<{payload:string;updated_at:string}>();

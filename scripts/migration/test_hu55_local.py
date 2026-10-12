@@ -19,7 +19,7 @@ def run():
     if 'project_id = "apprenovaciones-local"' not in config:
         raise RuntimeError('Only the reserved local project may be tested')
     migrations=sorted((ROOT/'supabase/migrations').glob('*.sql'))
-    if not migrations or any(not m.name.endswith(('_hu55_business_schema.sql','_hu57_identity_mapping.sql','_hu58_read_isolation.sql','_hu60_owner_read_snapshot.sql','_hu60_property_name_transaction.sql','_hu60_scenario_duplicate.sql','_hu60_scenario_save.sql','_hu60_scenario_approve.sql','_hu60_scenario_stress.sql')) for m in migrations):
+    if not migrations or any(not m.name.endswith(('_hu55_business_schema.sql','_hu57_identity_mapping.sql','_hu58_read_isolation.sql','_hu60_owner_read_snapshot.sql','_hu60_property_name_transaction.sql','_hu60_scenario_duplicate.sql','_hu60_scenario_save.sql','_hu60_scenario_approve.sql','_hu60_scenario_stress.sql','_hu60_owner_transactions.sql')) for m in migrations):
         raise RuntimeError('Review the local replay harness before adding later migrations')
     cases=[('hu55_schema.sql',15)]
     if any(m.name.endswith('_hu57_identity_mapping.sql') for m in migrations):
@@ -38,6 +38,8 @@ def run():
         cases.append(('hu60_approve.sql',9))
     if any(m.name.endswith('_hu60_scenario_stress.sql') for m in migrations):
         cases.append(('hu60_stress.sql',11))
+    if any(m.name.endswith('_hu60_owner_transactions.sql') for m in migrations):
+        cases.append(('hu60_owner.sql',15))
     tests='\n'.join((ROOT/'supabase/tests'/name).read_text() for name,_ in cases)
     expected=sum(count for _,count in cases)
     temporary='hu55_replay_'+uuid.uuid4().hex

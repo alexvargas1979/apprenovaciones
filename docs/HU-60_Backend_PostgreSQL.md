@@ -1,6 +1,6 @@
 # HU-60 · Backend PostgreSQL
 
-11 de octubre de 2026. Estado: **En desarrollo**. Lectura de propiedades/contabilidad y escrituras acotadas de cambio de nombre, guardado calculado y duplicación de escenarios con auditoría implementadas y probadas localmente. No se conectaron todas las pantallas ni hubo cambios en producción. Las vistas previas HTTP están desactivadas al finalizar los ensayos.
+12 de octubre de 2026. Estado: **En desarrollo; no cerrada**. Además de escenarios y lecturas, el backend local admite guardado general del expediente, operaciones de adquisición/presupuesto y contabilidad del propietario mediante transacciones PostgreSQL. La matriz al final distingue lo comprobado de las rutas pendientes. No están integradas todas las pantallas ni se modificó producción. Las opciones de ensayo se retiran al concluir.
 
 ## Implementación
 
@@ -237,3 +237,45 @@ Validación:
 Prueba reproducible: `node scripts/migration/test-hu60-stress.mjs` con opciones y clave local del servidor; `--expect-disabled` verifica el bloqueo al terminar.
 
 HU-60 sigue En desarrollo. Guardar, duplicar, aprobar y guardar estrés ya tienen rutas locales y controles propios. Restan edición general del expediente y supuestos, operaciones contables, tokens de versiones heredados, integración completa y revisión visual.
+
+
+## Décima entrega · Transacciones de propiedades, presupuesto y gastos
+
+12 de octubre de 2026. `PUT /api/properties`, `POST /api/operations` y `POST /api/accounting` tienen adaptadores PostgreSQL para el propietario. Conservan los validadores y cálculos existentes. El registro contable despacha las acciones de proveedores, facturas, aprobación, movimientos, clasificación, compras, control de gastos, supervisión, ciclo de vida y entrega; esto no habilita automáticamente las rutas auxiliares de esos módulos.
+
+Las escrituras usan `authClient()` con la sesión del usuario. El servidor firma el comando validado con HMAC-SHA256; la RPC `commit_validated_owner_change` verifica firma, vencimiento, actor, propiedad y versiones antes de escribir. La clave permanece en `access_private.mutation_keys`, sin lectura para roles API; no existe una ruta para firmar comandos arbitrarios. No se concede escritura directa de tablas. La clave privilegiada local se utiliza para preparar cuentas sintéticas de pruebas, no para estas operaciones normales.
+
+La transacción contable guarda el libro, cabeceras, líneas, distribuciones, historial y auditoría de forma atómica. Preserva el libro heredado antes de normalizarlo. El guardado de propiedades conserva el expediente original y los saldos manuales cuando corresponde. Hay comparación de versiones del libro, propiedades, borrador fuente y base aprobada. Los reintentos con `requestId` estable consultan el recibo antes de validar versiones antiguas; los reintentos concurrentes devuelven el libro persistido. Usar otro contenido con el mismo identificador produce conflicto. Las llamadas antiguas sin `requestId` siguen funcionando, pero no disponen del recibo genérico de reintento; el identificador propio de factura conserva su protección anterior.
+
+Se probó también la creación simultánea del mismo ID por dos propietarios: el conflicto de inserción nunca sobrescribe el registro ajeno. Un ID presente en `property_deletions` no puede recrearse.
+
+Migración: `20261012215202_hu60_owner_transactions.sql`, generada con `db pull --local` tras advisors sin incidencias. Se incluyó el prerrequisito explícito de pgcrypto para reconstrucción en PostgreSQL limpio. No contiene secretos ni datos.
+
+Evidencia:
+
+- 25 comprobaciones HTTP reales: creación/edición, origen, identidad, concurrencia, reintentos, presupuesto base, orden de cambio, proveedor, factura, aprobación, pago parcial, recarga, aislamiento, tombstone y fallo de auditoría con reversión del libro y sus tablas normalizadas.
+- 15 comprobaciones SQL nuevas; **116 locales y 116 al reconstruir** las migraciones, incluyendo firma, actor, vencimiento, permisos, reintento, versiones, factura/línea/distribución y rollback.
+- 15 regresiones HTTP de cambio de nombre; 19 suites de lógica/contratos con transporte simulado, TypeScript y build aprobados. `lib/api.test.ts` requiere cookies del antiguo entorno Sites y no se considera prueba de Supabase; su ejecución inicial dio 401. La cobertura HTTP nueva utiliza cuentas Supabase sintéticas.
+- Ensayo HU-59: 20 tablas y 20 filas sintéticas conciliadas; repetición, fallo inyectado, reversión y restauración aprobados. No sustituye una migración real.
+- Escaneo del build sin las claves temporales. Las opciones y clave de prueba se retiraron al finalizar; las tres rutas autenticadas devuelven 503 al desactivar el ensayo. Cuentas y registros sintéticos eliminados.
+
+Reproducción: configurar exclusivamente Supabase local, opciones `REHAB_POSTGRES_READ_PREVIEW=1` y `REHAB_POSTGRES_WRITE_PREVIEW=1`, y una clave temporal aleatoria de 32 bytes en hexadecimal en `REHAB_MUTATION_SIGNING_KEY` del servidor y como bytea en la fila privada `local-v1`. Nunca incorporarla a variables públicas, Vite, Git o migraciones. Iniciar Vite en `127.0.0.1:3000` y ejecutar `scripts/migration/test-hu60-owner.mjs` con `SUPABASE_CLI` apuntando a la CLI. Retirar opciones/clave y reiniciar antes de ejecutar el mismo script con `--expect-disabled`.
+
+## Matriz de cierre pendiente
+
+Esta matriz reemplaza las descripciones antiguas de “siguiente bloque”; no reduce los criterios originales de HU-60.
+
+| Área | Estado verificable | Trabajo necesario para cerrar |
+|---|---|---|
+| Lectura de cartera/libro; escenarios | Contratos locales e interfaz de ensayo probados | Integración de todas las pantallas y revisión visual integral |
+| Guardado general de propiedades | API local probada con identidad, versiones y auditoría | Conectar formulario completo, conservar identificadores de reintento en UI |
+| Operaciones de adquisición/presupuesto | Adaptador implementado; presupuesto y orden probados por HTTP | Contratos PostgreSQL adicionales de ofertas, diligencia y cierre |
+| Contabilidad del propietario | Factura/aprobación/pago probados con transacción y rollback | Contratos PostgreSQL de todas las acciones auxiliares y UI completa |
+| Equipo y permisos de colaboradores | Rutas aún bloqueadas en modo Supabase | Portar administración de equipo y permisos efectivos de escritura; no aceptar `grantId` hasta probarlos |
+| Borradores, recurrentes y reportes | Rutas independientes aún bloqueadas | Portar `/api/invoice-drafts`, `/api/expense-recurring`, `/api/expense-reports`, `/api/reports` y `/api/oversight` |
+| Importación Excel y preservación | Rutas independientes aún bloqueadas | Portar `/api/import-workbook` y rutas auxiliares de propiedades |
+| Eliminación de propiedad | Recreación de tombstones rechazada; DELETE todavía bloqueado | Portar borrado transaccional y conciliación de referencias/objetos |
+| Archivos | Storage pertenece a HU-61; rangos de páginas rechazados explícitamente | Resolver la dependencia de evidencia PDF/imagen y sus contratos; no simular archivos existentes |
+| Versiones heredadas y migración real | Ensayos sintéticos aprobados | Resolver tokens de versión heredados, cerrar conciliación HU-59 y ejecutar contratos con datos migrados autorizados |
+
+**No procede marcar HU-60 completada mientras existan estas rutas y contratos pendientes.** Producción y la web publicada siguen con el backend anterior. La portada Supabase continúa en Cuenta; los nuevos contratos no equivalen a una aplicación completa habilitada.
