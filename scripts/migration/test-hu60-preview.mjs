@@ -86,6 +86,15 @@ try {
     });
     assert.equal(r.status, 503);
     pass('scenario preview disabled');
+    assert.equal(
+      (
+        await fetch(origin + '/api/preview/scenarios?propertyId=none&id=none', {
+          headers: { cookie: cookies[0] },
+        })
+      ).status,
+      503,
+    );
+    pass('scenario detail disabled');
     const html = await (
       await fetch(origin + '/ensayo', { headers: { cookie: cookies[0] } })
     ).text();
@@ -120,6 +129,66 @@ try {
     assert.equal(list.bookVersion, null);
     assert(!('payload' in list.scenarios[0]));
     pass('owner sees bounded metadata and version tokens');
+    const detailUrl = endpoint + '&id=' + encodeURIComponent(source);
+    assert.equal((await fetch(detailUrl)).status, 401);
+    pass('anonymous detail denied');
+    assert.equal(
+      (await fetch(detailUrl, { headers: { cookie: cookies[1] } })).status,
+      404,
+    );
+    pass('foreign owner detail denied');
+    const detailResponse = await fetch(detailUrl, {
+      headers: { cookie: cookies[0] },
+    });
+    assert.equal(detailResponse.status, 200);
+    assert(detailResponse.headers.get('cache-control').includes('no-store'));
+    const detail = (await detailResponse.json()).scenario;
+    assert.equal(detail.id, source);
+    assert.equal(detail.metrics.profit, 123.45);
+    assert.equal(detail.metrics.purchase, null);
+    assert.equal(detail.checksRecorded, false);
+    assert(!('payload' in detail));
+    pass('historical metrics returned without invented zeroes or raw snapshot');
+    assert.equal(
+      (
+        await fetch(endpoint + '&id=missing', {
+          headers: { cookie: cookies[0] },
+        })
+      ).status,
+      404,
+    );
+    pass('missing scenario denied');
+    assert.equal(
+      (await fetch(endpoint + '&id=', { headers: { cookie: cookies[0] } }))
+        .status,
+      400,
+    );
+    pass('empty scenario id rejected');
+    const other = prefix + '-other';
+    sql(
+      `insert into public.properties values (${q(other)},${q(users[0])},'{"name":"Other","values":{},"lines":{}}',${q(version)});`,
+    );
+    assert.equal(
+      (
+        await fetch(
+          origin +
+            '/api/preview/scenarios?' +
+            new URLSearchParams({ propertyId: other, id: source }),
+          { headers: { cookie: cookies[0] } },
+        )
+      ).status,
+      404,
+    );
+    pass('same owner cannot mix property and scenario');
+    sql(`delete from public.properties where id=${q(other)};`);
+    assert.equal(
+      sql(
+        `select payload->'result'->>'profit' from public.analysis_scenarios where id=${q(source)};`,
+      ).trim(),
+      '123.45',
+    );
+    pass('reading does not recalculate stored result');
+
     const account = await fetch(origin + '/cuenta', {
       headers: { cookie: cookies[0] },
     });
@@ -143,15 +212,13 @@ try {
         viewport: { width: 1280, height: 900 },
       });
       await context.addCookies(
-        cookies[0]
-          .split('; ')
-          .map((c) => ({
-            name: c.slice(0, c.indexOf('=')),
-            value: c.slice(c.indexOf('=') + 1),
-            url: origin,
-            httpOnly: true,
-            sameSite: 'Lax',
-          })),
+        cookies[0].split('; ').map((c) => ({
+          name: c.slice(0, c.indexOf('=')),
+          value: c.slice(c.indexOf('=') + 1),
+          url: origin,
+          httpOnly: true,
+          sameSite: 'Lax',
+        })),
       );
       const page = await context.newPage(),
         errors = [];
@@ -247,15 +314,13 @@ try {
       pass('mobile layout and browser runtime');
       await context.clearCookies();
       await context.addCookies(
-        cookies[1]
-          .split('; ')
-          .map((c) => ({
-            name: c.slice(0, c.indexOf('=')),
-            value: c.slice(c.indexOf('=') + 1),
-            url: origin,
-            httpOnly: true,
-            sameSite: 'Lax',
-          })),
+        cookies[1].split('; ').map((c) => ({
+          name: c.slice(0, c.indexOf('=')),
+          value: c.slice(c.indexOf('=') + 1),
+          url: origin,
+          httpOnly: true,
+          sameSite: 'Lax',
+        })),
       );
       await page.goto(origin + '/ensayo');
       await page

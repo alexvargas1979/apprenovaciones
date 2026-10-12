@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import styles from './workspace.module.css';
+import ScenarioDetail from './scenario-detail';
 type Property = {
   id: string;
   name: string;
@@ -34,6 +35,7 @@ export default function Workspace({ writable }: { writable: boolean }) {
   const [properties, setProperties] = useState<Property[]>([]),
     [selected, setSelected] = useState(''),
     [versions, setVersions] = useState<Versions | null>(null);
+  const [detailId, setDetailId] = useState('');
   const [name, setName] = useState(''),
     [reason, setReason] = useState(''),
     [source, setSource] = useState(''),
@@ -166,6 +168,7 @@ export default function Workspace({ writable }: { writable: boolean }) {
               value={selected}
               disabled={busy || loading}
               onChange={(e) => {
+                setDetailId('');
                 setSelected(e.target.value);
                 setNotice('');
               }}
@@ -267,12 +270,33 @@ export default function Workspace({ writable }: { writable: boolean }) {
                   {versions?.scenarios.map((s) => (
                     <li key={s.id}>
                       {s.label}
+                      <button
+                        type="button"
+                        className={styles.detailButton}
+                        aria-expanded={detailId === s.id}
+                        onClick={() =>
+                          setDetailId(detailId === s.id ? '' : s.id)
+                        }
+                      >
+                        {detailId === s.id
+                          ? 'Cerrar detalle: '
+                          : 'Ver detalle: '}
+                        {s.label}
+                      </button>
                       {s.id === versions.baseId && (
                         <span className={styles.badge}>Base aprobada</span>
                       )}
                     </li>
                   ))}
                 </ul>
+                {detailId &&
+                  versions?.scenarios.some((s) => s.id === detailId) && (
+                    <ScenarioDetail
+                      key={property.id + ':' + detailId}
+                      propertyId={property.id}
+                      id={detailId}
+                    />
+                  )}
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();

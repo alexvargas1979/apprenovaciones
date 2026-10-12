@@ -144,3 +144,22 @@ node scripts/migration/test-hu60-preview-dom.mjs
 ```
 
 Validación: 12 pruebas de interacción aprobadas, TypeScript y build aprobados. Los identificadores de reintento se conservan sólo mientras esta pantalla permanece montada; cerrar o recargar la página requiere revisar la lista antes de volver a crear una copia. Pendientes siguientes: revisión visual y escrituras completas del expediente, escenarios y contabilidad.
+
+
+## Sexta entrega · Consulta de cifras históricas de escenarios
+
+11 de octubre de 2026. Cada escenario de `/ensayo` ofrece «Ver detalle». La consulta muestra compra, ARV, remodelación, intereses, cargos financieros, costo total, utilidad, margen, fecha de guardado y observaciones/datos pendientes registrados. También funciona en modo de sólo lectura.
+
+El detalle usa `GET /api/preview/scenarios?propertyId=…&id=…`. Mantiene la autorización del propietario, RLS, restricción al entorno local y `no-store`; exige que el escenario pertenezca a la propiedad solicitada. Devuelve una proyección acotada del JSON histórico, sin enviar el expediente completo ni recalcular el resultado. Los campos ausentes, no numéricos o no finitos se muestran como «No registrado», conservando correctamente ceros y cantidades negativas. Si no existe una revisión histórica de datos pendientes, se indica expresamente. La fecha se muestra en la zona de Atlanta.
+
+La vista permite cerrar o reintentar la consulta. Al cambiar de propiedad se desmonta el detalle; una respuesta anterior tardía no puede poblar la nueva selección. No se añadieron escrituras, permisos SQL ni migraciones.
+
+Validación:
+
+- 13 comprobaciones HTTP locales aprobadas (7 nuevas para detalle): visitante sin sesión, propietario ajeno, datos históricos, escenario inexistente, ID vacío, cruce de propiedades del mismo dueño y conservación del resultado.
+- 16 comprobaciones React/jsdom aprobadas (4 nuevas): detalle en modo de consulta, cierre, error/reintento y respuesta tardía tras cambiar de propiedad. Transporte simulado; no equivalen a inspección visual.
+- Prueba de proyección aprobada: ceros, negativos, campos inválidos/ausentes, observaciones incompletas y preservación del objeto original.
+- TypeScript y compilación aprobados. Con las opciones retiradas y servidor reiniciado, 4 comprobaciones HTTP de desactivación aprobadas, incluida la nueva consulta de detalle.
+- Cuentas y datos sintéticos eliminados. Opciones de ensayo retiradas. Producción intacta.
+
+HU-60 continúa En desarrollo. Esta consulta no porta guardar/aprobar escenarios, pruebas de estrés ni escrituras generales del expediente y la contabilidad. La revisión visual en navegador sigue pendiente.

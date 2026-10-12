@@ -1,3 +1,4 @@
+import { scenarioSummary } from '@/lib/postgres/scenario-summary';
 import { readPostgresWorkspace } from '@/lib/postgres/read-server';
 import { authClient } from '@/lib/auth/supabase';
 import { fail } from '@/lib/server';
@@ -12,6 +13,35 @@ export async function GET(req: Request) {
         { status: 404, headers: { 'Cache-Control': 'no-store' } },
       );
     const client = await authClient();
+    const scenarioId = new URL(req.url).searchParams.get('id');
+    if (scenarioId !== null) {
+      if (!scenarioId || scenarioId.length > 80)
+        throw Error('Identificador de escenario inválido.');
+      const { data, error } = await client
+        .from('analysis_scenarios')
+        .select('id,label,source_id,created_at,payload')
+        .eq('property_id', property.id)
+        .eq('id', scenarioId)
+        .maybeSingle();
+      if (error) throw Error('No se pudo consultar el escenario. Reintenta.');
+      if (!data)
+        return Response.json(
+          { error: 'Escenario no encontrado.' },
+          { status: 404, headers: { 'Cache-Control': 'no-store' } },
+        );
+      return Response.json(
+        {
+          scenario: {
+            id: data.id,
+            label: data.label,
+            sourceId: data.source_id,
+            createdAt: data.created_at,
+            ...scenarioSummary(data.payload),
+          },
+        },
+        { headers: { 'Cache-Control': 'no-store' } },
+      );
+    }
     const [scenarios, baseline] = await Promise.all([
       client
         .from('analysis_scenarios')

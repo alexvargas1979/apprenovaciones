@@ -151,6 +151,35 @@ try {
       const id = new URL(url, dom.window.location.origin).searchParams.get(
         'propertyId',
       );
+      const scenarioId = new URL(
+        url,
+        dom.window.location.origin,
+      ).searchParams.get('id');
+      if (scenarioId) {
+        if (state.detailError)
+          return response({ error: 'No se pudo consultar el detalle.' }, 500);
+        if (state.delayedDetail) return state.delayedDetail;
+        return response({
+          scenario: {
+            id: scenarioId,
+            label: 'Histórico original',
+            createdAt: '2026-10-11T00:00:00Z',
+            metrics: {
+              purchase: 0,
+              arv: null,
+              rehab: 12000,
+              interest: 1000,
+              financeFees: 500,
+              totalCost: 13500,
+              profit: -1250,
+              margin: -0.1,
+            },
+            missing: ['ARV pendiente'],
+            warnings: ['Revisar costos'],
+            checksRecorded: true,
+          },
+        });
+      }
       return response({
         propertyId: id,
         version: '2026-10-11T00:00:00.000002Z',
@@ -256,6 +285,47 @@ try {
   assert.equal(state.scenarios.length, 3);
   assert.equal(state.calls[0].body.requestId, state.calls[2].body.requestId);
   pass('edited then restored uncertain command keeps retry identity');
+  await mount({ writable: false });
+  await click('Ver detalle: Base original');
+  assert(
+    document
+      .querySelector('[aria-label="Detalle del escenario"]')
+      .textContent.includes('Histórico original'),
+  );
+  assert(document.body.textContent.includes('No registrado'));
+  assert(document.body.textContent.includes('ARV pendiente'));
+  assert(document.body.textContent.includes('Revisar costos'));
+  assert.equal(state.calls.length, 0);
+  pass('read-only account can view historical detail without mutation');
+  await click('Cerrar detalle: Base original');
+  assert(!document.querySelector('[aria-label="Detalle del escenario"]'));
+  pass('detail closes');
+  await mount({ state: { detailError: true } });
+  await click('Ver detalle: Base original');
+  assert(
+    document.querySelector('[role=alert]').textContent.includes('detalle'),
+  );
+  state.detailError = false;
+  await click('Reintentar consulta');
+  assert(document.body.textContent.includes('Histórico original'));
+  pass('failed detail can retry');
+  let resolveDetail;
+  await mount({
+    state: {
+      delayedDetail: new Promise((resolve) => {
+        resolveDetail = resolve;
+      }),
+    },
+  });
+  await click('Ver detalle: Base original');
+  await fill('Propiedad', 'p2');
+  await act(async () =>
+    resolveDetail(response({ scenario: { label: 'STALE DETAIL' } })),
+  );
+  await settle();
+  assert(!document.body.textContent.includes('STALE DETAIL'));
+  assert(!document.querySelector('[aria-label="Detalle del escenario"]'));
+  pass('late detail cannot leak into another selected property');
   console.log(
     JSON.stringify({ checks, transport: 'simulated', visual_tested: false }),
   );
