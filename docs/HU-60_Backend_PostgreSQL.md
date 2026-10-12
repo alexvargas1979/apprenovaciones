@@ -1,6 +1,6 @@
 # HU-60 · Backend PostgreSQL
 
-11 de octubre de 2026. Estado: **En desarrollo**. Lectura de propiedades/contabilidad y escrituras acotadas de cambio de nombre y duplicación de escenarios con auditoría implementadas y probadas localmente. No se conectaron todas las pantallas ni hubo cambios en producción. Las vistas previas HTTP están desactivadas al finalizar los ensayos.
+11 de octubre de 2026. Estado: **En desarrollo**. Lectura de propiedades/contabilidad y escrituras acotadas de cambio de nombre, guardado calculado y duplicación de escenarios con auditoría implementadas y probadas localmente. No se conectaron todas las pantallas ni hubo cambios en producción. Las vistas previas HTTP están desactivadas al finalizar los ensayos.
 
 ## Implementación
 
@@ -163,3 +163,28 @@ Validación:
 - Cuentas y datos sintéticos eliminados. Opciones de ensayo retiradas. Producción intacta.
 
 HU-60 continúa En desarrollo. Esta consulta no porta guardar/aprobar escenarios, pruebas de estrés ni escrituras generales del expediente y la contabilidad. La revisión visual en navegador sigue pendiente.
+
+
+## Séptima entrega · Guardado de escenarios calculados por el servidor
+
+11 de octubre de 2026 (migración generada el 12 de octubre UTC). La pantalla local incorpora «Guardar nuevo escenario», a partir del análisis de inversión ya almacenado en la propiedad. No crea ni edita los supuestos del análisis y no aprueba la base. Un análisis sin configurar devuelve un mensaje; un análisis válido pero incompleto conserva sus avisos y datos pendientes, como en el flujo original.
+
+`POST /api/scenarios/save` admite únicamente propiedad, versiones de propiedad/libro, nombre y requestId. Exige usuario confirmado mediante getUser(), origen exacto, ambas opciones de ensayo y Supabase local. Lee la cartera con la sesión del propietario y calcula en el servidor con el motor existente y los gastos conciliados. El navegador no puede proporcionar actor, snapshot ni resultados financieros.
+
+Para evitar que un cliente invoque una RPC con resultados inventados, `save_computed_scenario` sólo concede EXECUTE a `service_role` (y al administrador PostgreSQL). Usa una envoltura SECURITY INVOKER y una función interna en `access_private`, con search_path vacío, verificación de identidad activa/confirmada y comprobación de propietario. La cuenta de servidor no recibe INSERT directo sobre escenarios. La ruta utiliza exclusivamente una clave de servidor en `SUPABASE_SECRET_KEY`, nunca una clave enviada al cliente. Se comprobó que no aparezca en los archivos compilados. Referencia: [claves de servidor de Supabase](https://supabase.com/docs/guides/getting-started/api-keys).
+
+La RPC guarda escenario y auditoría de forma atómica, conserva la base aprobada, bloquea la propiedad y un libro existente, comprueba versiones y respeta el máximo concurrente de 50 escenarios. Un recibo por actor/requestId permite responder al reintento antes de recalcular, incluso cuando la propiedad ya cambió. Un comando distinto con el mismo requestId se rechaza. Sigue pendiente coordinar la creación de libros antes inexistentes cuando se implementen las escrituras contables generales; actualmente permanecen bloqueadas.
+
+Migración: `20261012001332_hu60_scenario_save.sql`, generada mediante `db pull --local` después de aplicar y revisar el SQL local. Advisors sin incidencias y lista de migraciones local sincronizada. No se ejecutó ninguna operación remota.
+
+Validación de la entrega:
+
+- 10 comprobaciones SQL nuevas: permisos de función, recibo/repetición, conflictos de comando y versiones, identidad, auditoría única, reversión ante fallo de auditoría y ausencia de INSERT directo. Total 81 locales y las mismas 81 sobre una base reconstruida.
+- 14 pruebas HTTP de guardado: identidad/origen, rechazo de actor y resultados inyectados, propietario, versión, resultado calculado, reintento después de edición, RPC directa denegada, auditoría y concurrencia. Dos guardados distintos con 49 escenarios terminan en 201/409 y exactamente 50 filas.
+- 13 regresiones HTTP de duplicación aprobadas; 18 pruebas de interacción React/jsdom aprobadas, incluidas las del nuevo formulario. Estas últimas simulan la API; revisión visual en navegador pendiente.
+- TypeScript/build aprobados. Ensayo HU-59 de 20 tablas/20 filas, repetición sin duplicados, conflicto, fallo/reversión e importación/restauración aprobado con la nueva migración.
+- Tras retirar opciones y clave temporal y reiniciar el servidor, guardado autenticado devuelve 503. Datos y usuarios sintéticos eliminados. Producción intacta.
+
+Para ensayar localmente, configurar las dos opciones de vista previa y `SUPABASE_SECRET_KEY` del Supabase **local** en el archivo ignorado `.env.local`; nunca en `VITE_*`, componentes ni configuración versionada. El emulador de Workers carga el secreto desde ese archivo, sin añadirlo a las variables públicas de Vite. Ejecutar `scripts/migration/test-hu60-save.mjs` con el CLI local disponible; `--expect-disabled` comprueba el bloqueo al retirar las opciones. Al concluir esta entrega se retiraron esos tres valores temporales.
+
+HU-60 sigue En desarrollo. Pendientes: guardar/editar el expediente y sus supuestos de inversión, aprobar escenarios, pruebas de estrés, escrituras contables, versiones heredadas e integración completa. Esta entrega habilita guardar una nueva instantánea de un análisis previamente almacenado; no completa toda la migración.

@@ -36,7 +36,7 @@ def run(plan):
     if not plan['ready_for_rehearsal']:raise ValueError('Quarantined rows must be resolved first')
     if 'project_id = "apprenovaciones-local"' not in (ROOT/'supabase/config.toml').read_text():raise ValueError('Unexpected local project')
     migrations=sorted((ROOT/'supabase/migrations').glob('*.sql'))
-    if not migrations or any(not m.name.endswith(('_hu55_business_schema.sql','_hu57_identity_mapping.sql','_hu58_read_isolation.sql','_hu60_owner_read_snapshot.sql','_hu60_property_name_transaction.sql','_hu60_scenario_duplicate.sql')) for m in migrations):raise ValueError('Review the rehearsal for new migrations')
+    if not migrations or any(not m.name.endswith(('_hu55_business_schema.sql','_hu57_identity_mapping.sql','_hu58_read_isolation.sql','_hu60_owner_read_snapshot.sql','_hu60_property_name_transaction.sql','_hu60_scenario_duplicate.sql','_hu60_scenario_save.sql')) for m in migrations):raise ValueError('Review the rehearsal for new migrations')
     database='hu59_rehearsal_'+uuid.uuid4().hex;restored='hu59_rehearsal_'+uuid.uuid4().hex
     created=[];started=time.monotonic();report={'started_at':datetime.now(timezone.utc).isoformat(),'snapshot_sha256':plan['snapshot_sha256'],'source_id':plan['source_id'],'production_modified':False,'production_ready':False}
     try:

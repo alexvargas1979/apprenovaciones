@@ -90,7 +90,7 @@ Implementado y probado localmente el 9 de octubre de 2026. La ficha queda manual
 | HU-57 | Vincular usuarios existentes y conservar sus datos | En verificación | Migración Supabase | [Correspondencia privada y ensayo local](HU-57_Vinculacion_identidades.md); pendiente evidencia y cobertura reales |
 | HU-58 | Conservar roles y aislamiento de datos | En desarrollo | Migración Supabase · local | [Lectura aislada probada; vistas completas y acciones pendientes](HU-58_Permisos_y_aislamiento.md) |
 | HU-59 | Migrar y conciliar los datos de D1 | En desarrollo | Migración Supabase · ensayo local | [20 tablas sintéticas, repetición y restauración probadas; datos reales pendientes](HU-59_Importacion_y_conciliacion.md) |
-| HU-60 | Adaptar las operaciones del backend a PostgreSQL | En desarrollo | Migración Supabase · ensayo local | [Pantalla local conectada a lecturas, cambio de nombre y duplicación; validación visual y operaciones financieras pendientes](HU-60_Backend_PostgreSQL.md) |
+| HU-60 | Adaptar las operaciones del backend a PostgreSQL | En desarrollo | Migración Supabase · ensayo local | [Pantalla local conectada a lecturas, cambio de nombre, guardado calculado y duplicación; validación visual y operaciones financieras pendientes](HU-60_Backend_PostgreSQL.md) |
 | HU-61 | Guardar archivos nuevos en Supabase Storage | Pendiente | Migración Supabase | Sin implementación |
 | HU-62 | Migrar documentos históricos de R2 | Pendiente | Migración Supabase | Sin implementación |
 | HU-63 | Consultar la información desde el panel de Supabase | Pendiente | Migración Supabase | Sin implementación |
@@ -402,3 +402,6 @@ HU-60, quinta entrega del 11 de octubre: 12 pruebas de interacción del componen
 
 
 HU-60, sexta entrega del 11 de octubre: consulta de cifras históricas de escenarios conectada a la pantalla local, con estados ausentes, errores y reintento. 13 pruebas HTTP, 16 de interacción simulada, proyección histórica, TypeScript y build aprobados; 4 pruebas de desactivación. Sin cambios productivos. Revisión visual y demás escrituras pendientes. [Detalle](HU-60_Backend_PostgreSQL.md).
+
+
+HU-60, séptima entrega del 11 de octubre: guardado de nuevos escenarios calculados en el servidor, conectado al formulario local, con auditoría atómica, recibos de reintento y límite concurrente. 81 comprobaciones SQL locales/reconstruidas, 14 HTTP nuevas, 13 regresiones de duplicación, 18 de interacción, TypeScript/build y ensayo HU-59 aprobados. Guardado desactivado al concluir; producción intacta. Faltan edición de supuestos/expediente, aprobación, estrés y contabilidad. [Detalle](HU-60_Backend_PostgreSQL.md).

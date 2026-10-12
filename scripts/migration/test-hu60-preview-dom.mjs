@@ -326,6 +326,18 @@ try {
   assert(!document.body.textContent.includes('STALE DETAIL'));
   assert(!document.querySelector('[aria-label="Detalle del escenario"]'));
   pass('late detail cannot leak into another selected property');
+  await mount();
+  await fill('Nombre del nuevo escenario', 'Nuevo cálculo');
+  await click('Guardar nuevo escenario');
+  assert.equal(state.calls[0].url, '/api/scenarios/save');
+  assert(!('snapshot' in state.calls[0].body));
+  assert(!('sourceId' in state.calls[0].body));
+  assert.equal(state.calls[0].body.label, 'Nuevo cálculo');
+  assert(document.body.textContent.includes('Nuevo escenario guardado.'));
+  pass('save form sends command only and refreshes');
+  await mount({ writable: false });
+  assert(field('Nombre del nuevo escenario').matches(':disabled'));
+  pass('new scenario form disabled in read-only mode');
   console.log(
     JSON.stringify({ checks, transport: 'simulated', visual_tested: false }),
   );

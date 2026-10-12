@@ -36,6 +36,7 @@ export default function Workspace({ writable }: { writable: boolean }) {
     [selected, setSelected] = useState(''),
     [versions, setVersions] = useState<Versions | null>(null);
   const [detailId, setDetailId] = useState('');
+  const [saveLabel, setSaveLabel] = useState('');
   const [name, setName] = useState(''),
     [reason, setReason] = useState(''),
     [source, setSource] = useState(''),
@@ -74,6 +75,7 @@ export default function Workspace({ writable }: { writable: boolean }) {
       setName(data.properties.find((p: Property) => p.id === id)!.name);
       setReason('');
       setLabel('');
+      setSaveLabel('');
       setSource(result.scenarios[0]?.id || '');
     })()
       .catch((e) => {
@@ -86,7 +88,7 @@ export default function Workspace({ writable }: { writable: boolean }) {
       active = false;
     };
   }, [selected, revision]);
-  async function mutate(kind: 'name' | 'duplicate') {
+  async function mutate(kind: 'name' | 'duplicate' | 'save') {
     if (
       !writable ||
       loading ||
@@ -100,7 +102,11 @@ export default function Workspace({ writable }: { writable: boolean }) {
     setError('');
     setNotice('');
     const url =
-      kind === 'name' ? '/api/properties/name' : '/api/scenarios/duplicate';
+      kind === 'name'
+        ? '/api/properties/name'
+        : kind === 'save'
+          ? '/api/scenarios/save'
+          : '/api/scenarios/duplicate';
     const body =
       kind === 'name'
         ? {
@@ -111,10 +117,10 @@ export default function Workspace({ writable }: { writable: boolean }) {
           }
         : {
             propertyId: property.id,
-            sourceId: source,
+            ...(kind === 'duplicate' ? { sourceId: source } : {}),
             version: versions.version,
             bookVersion: versions.bookVersion,
-            label: label.trim(),
+            label: kind === 'save' ? saveLabel.trim() : label.trim(),
           };
     const key = JSON.stringify({ url, body });
     const requestId = pending.current.get(key) ?? crypto.randomUUID();
@@ -129,7 +135,9 @@ export default function Workspace({ writable }: { writable: boolean }) {
       setNotice(
         kind === 'name'
           ? 'Nombre guardado.'
-          : 'Escenario duplicado. La base aprobada se conserva.',
+          : kind === 'save'
+            ? 'Nuevo escenario guardado.'
+            : 'Escenario duplicado. La base aprobada se conserva.',
       );
       setVersions(null);
       setRevision((v) => v + 1);
@@ -156,7 +164,7 @@ export default function Workspace({ writable }: { writable: boolean }) {
         </p>
         <aside className={styles.info}>
           {writable
-            ? 'Disponible: consultar propiedades, cambiar su nombre y duplicar escenarios.'
+            ? 'Disponible: consultar propiedades, cambiar su nombre, guardar y duplicar escenarios.'
             : 'Modo de consulta: los cambios están desactivados.'}{' '}
           La edición financiera, las facturas y los archivos siguen pendientes
           en esta pantalla.
@@ -262,6 +270,39 @@ export default function Workspace({ writable }: { writable: boolean }) {
               </section>
               <section className={styles.card}>
                 <h3>Versiones del análisis</h3>
+                <p>
+                  Guarda una versión calculada desde el análisis que ya tiene la
+                  propiedad. No reemplaza la base aprobada.
+                </p>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    void mutate('save');
+                  }}
+                >
+                  <fieldset
+                    disabled={
+                      !writable ||
+                      busy ||
+                      loading ||
+                      !versions ||
+                      versions.scenarios.length >= 50
+                    }
+                  >
+                    <label>
+                      Nombre del nuevo escenario
+                      <input
+                        value={saveLabel}
+                        onChange={(e) => setSaveLabel(e.target.value)}
+                        required
+                        maxLength={100}
+                      />
+                    </label>
+                    <button type="submit" disabled={!saveLabel.trim()}>
+                      Guardar nuevo escenario
+                    </button>
+                  </fieldset>
+                </form>
                 <p>Una copia conserva los cálculos del escenario original.</p>
                 {versions && !versions.scenarios.length && (
                   <p>No hay escenarios guardados para duplicar.</p>
