@@ -90,7 +90,7 @@ Implementado y probado localmente el 9 de octubre de 2026. La ficha queda manual
 | HU-57 | Vincular usuarios existentes y conservar sus datos | En verificación | Migración Supabase | [Correspondencia privada y ensayo local](HU-57_Vinculacion_identidades.md); pendiente evidencia y cobertura reales |
 | HU-58 | Conservar roles y aislamiento de datos | En desarrollo | Migración Supabase · local | [Lectura aislada probada; vistas completas y acciones pendientes](HU-58_Permisos_y_aislamiento.md) |
 | HU-59 | Migrar y conciliar los datos de D1 | En desarrollo | Migración Supabase · ensayo local | [20 tablas sintéticas, repetición y restauración probadas; datos reales pendientes](HU-59_Importacion_y_conciliacion.md) |
-| HU-60 | Adaptar las operaciones del backend a PostgreSQL | En desarrollo | Migración Supabase · ensayo local | [Lecturas y escenarios; APIs locales de propiedades, presupuesto y contabilidad transaccional probadas. Equipo, rutas auxiliares e integración completa pendientes](HU-60_Backend_PostgreSQL.md) |
+| HU-60 | Adaptar las operaciones del backend a PostgreSQL | En desarrollo | Migración Supabase · ensayo local | [Lecturas y escenarios; APIs locales de propiedades, presupuesto, contabilidad, borradores y recurrentes probadas. Equipo, reportes y demás rutas pendientes](HU-60_Backend_PostgreSQL.md) |
 | HU-61 | Guardar archivos nuevos en Supabase Storage | Pendiente | Migración Supabase | Sin implementación |
 | HU-62 | Migrar documentos históricos de R2 | Pendiente | Migración Supabase | Sin implementación |
 | HU-63 | Consultar la información desde el panel de Supabase | Pendiente | Migración Supabase | Sin implementación |
@@ -414,3 +414,9 @@ HU-60, novena entrega del 12 de octubre: guardado de pruebas de estrés registra
 
 
 HU-60, décima entrega del 12 de octubre: APIs locales de guardado general, presupuesto/órdenes y contabilidad con sesión del propietario, firma de validación y transacción PostgreSQL. 25 pruebas HTTP nuevas, 116 comprobaciones SQL locales y 116 de reconstrucción, 19 suites de regresión y build aprobados. Se conserva En desarrollo: matriz explícita de rutas, contratos y dependencias faltantes en el [detalle HU-60](HU-60_Backend_PostgreSQL.md). Sin cambios productivos.
+
+
+HU-60, preparación del 13 de octubre: adaptadores locales de borradores y generación recurrente preparados, con 20 pruebas de lógica, regresiones, TypeScript y build aprobados. SQL propuesto y 12 comprobaciones pendientes de ejecución; bloqueo por Docker detenido/no iniciable. Nuevo bloque desactivado. HU-60 permanece En desarrollo; no se atribuye validación PostgreSQL a estas rutas. [Detalle](HU-60_Backend_PostgreSQL.md).
+
+
+HU-60, undécima entrega del 13 de octubre: resuelto el bloqueo local de Docker; borradores y generación recurrente verificados con 25 pruebas HTTP, 128 comprobaciones SQL locales y 128 de reconstrucción, 25 regresiones HTTP y 20 suites de lógica. Migración generada, rollback/restauración y build aprobados. Opciones de ensayo retiradas; producción intacta. Continúa En desarrollo por los módulos restantes de la [matriz de cierre](HU-60_Backend_PostgreSQL.md).

@@ -1,6 +1,6 @@
 # HU-60 · Backend PostgreSQL
 
-12 de octubre de 2026. Estado: **En desarrollo; no cerrada**. Además de escenarios y lecturas, el backend local admite guardado general del expediente, operaciones de adquisición/presupuesto y contabilidad del propietario mediante transacciones PostgreSQL. La matriz al final distingue lo comprobado de las rutas pendientes. No están integradas todas las pantallas ni se modificó producción. Las opciones de ensayo se retiran al concluir.
+13 de octubre de 2026. Estado: **En desarrollo; no cerrada**. Además de escenarios y lecturas, el backend local admite guardado general del expediente, operaciones de adquisición/presupuesto, contabilidad, borradores y generación recurrente del propietario mediante transacciones PostgreSQL. La matriz al final distingue lo comprobado de las rutas pendientes. No están integradas todas las pantallas ni se modificó producción. Las opciones de ensayo se retiran al concluir.
 
 ## Implementación
 
@@ -272,10 +272,45 @@ Esta matriz reemplaza las descripciones antiguas de “siguiente bloque”; no r
 | Operaciones de adquisición/presupuesto | Adaptador implementado; presupuesto y orden probados por HTTP | Contratos PostgreSQL adicionales de ofertas, diligencia y cierre |
 | Contabilidad del propietario | Factura/aprobación/pago probados con transacción y rollback | Contratos PostgreSQL de todas las acciones auxiliares y UI completa |
 | Equipo y permisos de colaboradores | Rutas aún bloqueadas en modo Supabase | Portar administración de equipo y permisos efectivos de escritura; no aceptar `grantId` hasta probarlos |
-| Borradores, recurrentes y reportes | Rutas independientes aún bloqueadas | Portar `/api/invoice-drafts`, `/api/expense-recurring`, `/api/expense-reports`, `/api/reports` y `/api/oversight` |
+| Borradores y recurrentes | APIs del propietario probadas por SQL/HTTP; se habilitan sólo en ensayo local | Integrar pantalla completa y permisos de colaboradores |
+| Reportes y supervisión | Rutas independientes aún bloqueadas | Portar `/api/expense-reports`, `/api/reports` y `/api/oversight` |
 | Importación Excel y preservación | Rutas independientes aún bloqueadas | Portar `/api/import-workbook` y rutas auxiliares de propiedades |
 | Eliminación de propiedad | Recreación de tombstones rechazada; DELETE todavía bloqueado | Portar borrado transaccional y conciliación de referencias/objetos |
 | Archivos | Storage pertenece a HU-61; rangos de páginas rechazados explícitamente | Resolver la dependencia de evidencia PDF/imagen y sus contratos; no simular archivos existentes |
 | Versiones heredadas y migración real | Ensayos sintéticos aprobados | Resolver tokens de versión heredados, cerrar conciliación HU-59 y ejecutar contratos con datos migrados autorizados |
 
 **No procede marcar HU-60 completada mientras existan estas rutas y contratos pendientes.** Producción y la web publicada siguen con el backend anterior. La portada Supabase continúa en Cuenta; los nuevos contratos no equivalen a una aplicación completa habilitada.
+
+
+## Preparación del 13 de octubre · Borradores y gastos recurrentes
+
+Estado al preparar este bloque: **Código local preparado; integración PostgreSQL sin verificar**. El bloqueo y la verificación pendientes se resolvieron en la entrega siguiente. El avance probado de la décima entrega quedó sincronizado en GitHub, commit `eeff07efc8bef30bf56a0daadfb9529cbb6b788a`.
+
+Se añadieron adaptadores del propietario para consultar/guardar borradores y generar períodos recurrentes. La preparación conserva el historial de revisión en el servidor, invalida la revisión al cambiar la factura y rechaza cambios de propiedad u origen recurrente. Compara objetos por contenido, sin considerar como modificación un cambio del orden de sus claves JSON. La consulta propuesta pagina a 25 resultados y filtra estado, proveedor, fecha, número y descripción.
+
+La propuesta SQL extiende la transacción firmada: verifica versiones de libro/propiedades/borrador, impide editar borradores ya emitidos y aplica el límite de 3,000 borradores dentro de la transacción. Guarda borrador y auditoría juntos. El SQL está en `supabase/proposals/hu60_invoice_drafts.sql`; **todavía no se aplicó ni se generó una migración**. No debe ejecutarse en producción.
+
+Verificación independiente de Docker: 20 pruebas de transición/historial/origen de borradores; regresiones de gastos y 25 comprobaciones de permisos simulados; TypeScript y build aprobados. Se prepararon 12 comprobaciones SQL en `supabase/tests/hu60_drafts.sql`, aún no ejecutadas. No se presentan las pruebas de lógica como prueba de transacciones ni RLS.
+
+Las nuevas rutas tienen un bloqueo adicional `REHAB_POSTGRES_DRAFTS_PREVIEW`; permanece desactivado. No activar el bloque hasta aplicar el SQL local, generar su migración con `db pull --local`, ejecutar advisors, reconstrucción y pruebas HTTP de borradores/revisión/recurrentes con dos cuentas y fallos inyectados.
+
+Bloqueo observado: Docker no responde; macOS devuelve `kLSNoExecutableErr` al intentar abrir Docker Desktop. Se solicitó al usuario abrir o reparar Docker. El proyecto Supabase de producción permanece reservado y no se usó como sustituto del entorno local.
+
+
+## Undécima entrega · Borradores y generación recurrente verificados
+
+13 de octubre de 2026. Tras la confirmación del usuario, Docker volvió a responder y se inició Supabase local. Se aplicó el SQL propuesto, se ejecutaron advisors sin incidencias y se generó `20261013222541_hu60_invoice_drafts.sql` con `db pull --local`. El archivo de propuesta se retiró; la migración es ahora la fuente reproducible.
+
+`GET/POST /api/invoice-drafts` y `POST /api/expense-recurring` disponen de adaptadores PostgreSQL del propietario. Se mantienen el identificador estable del período, la obligación de completar número/archivo real antes de registrar, la revisión y sus observaciones, y el bloqueo de un borrador cuando su factura ya fue emitida. Los permisos de colaboradores continúan pendientes y se rechazan explícitamente. Estas rutas requieren las opciones locales existentes y `REHAB_POSTGRES_DRAFTS_PREVIEW=1`.
+
+Verificación realizada:
+
+- **25 pruebas HTTP de borradores y recurrentes**: autenticación/origen, aislamiento, guardado/recarga, filtros, revisiones, invalidación al editar, idempotencia, conflicto concurrente, fallo de auditoría con rollback, generación por período sin duplicados, origen recurrente inmutable, bloqueo tras emitir y denegación de escrituras directas.
+- **128 comprobaciones SQL locales y 128 de reconstrucción**: incluyen 12 nuevas de borradores, búsqueda/paginación, permisos, límite de 3,000 y reversión de la transacción.
+- **25 regresiones HTTP** de propiedades, presupuesto y contabilidad; **20 suites de lógica/contratos simulados**, TypeScript y build aprobados.
+- Ensayo de importación/restauración HU-59 con 20 tablas y 20 filas sintéticas: conciliación, repetición y rollback aprobados.
+- Opciones y clave temporal retiradas al finalizar; comprobación de las tres rutas desactivadas con respuesta 503. Las cuentas/datos sintéticos se eliminan en `finally`. Sin publicación ni cambios productivos.
+
+Prueba reproducible: `scripts/migration/test-hu60-drafts.mjs` con `SUPABASE_CLI`, servidor local y opciones de ensayo; `--expect-disabled` verifica el bloqueo después de retirar opciones y reiniciar. La clave de firma comparte la configuración de la décima entrega y nunca se añade a variables públicas ni al repositorio.
+
+HU-60 sigue **En desarrollo**. La siguiente ruta pendiente en la matriz es reportes/supervisión; también faltan colaboradores, importación, eliminación e integración completa. Esta entrega cierra la verificación del bloque de borradores del propietario, no la historia completa.
