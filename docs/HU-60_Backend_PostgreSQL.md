@@ -1,6 +1,6 @@
 # HU-60 · Backend PostgreSQL
 
-13 de octubre de 2026. Estado: **En desarrollo; no cerrada**. Además de escenarios y lecturas, el backend local admite guardado general del expediente, operaciones de adquisición/presupuesto, contabilidad, borradores y generación recurrente del propietario mediante transacciones PostgreSQL. La matriz al final distingue lo comprobado de las rutas pendientes. No están integradas todas las pantallas ni se modificó producción. Las opciones de ensayo se retiran al concluir.
+13 de octubre de 2026. Estado: **En desarrollo; no cerrada**. Además de escenarios y lecturas, el backend local admite guardado general del expediente, operaciones de adquisición/presupuesto, contabilidad, borradores, generación recurrente y reportes del propietario mediante transacciones PostgreSQL. La matriz al final distingue lo comprobado de las rutas pendientes. No están integradas todas las pantallas ni se modificó producción. Las opciones de ensayo se retiran al concluir.
 
 ## Implementación
 
@@ -273,7 +273,7 @@ Esta matriz reemplaza las descripciones antiguas de “siguiente bloque”; no r
 | Contabilidad del propietario | Factura/aprobación/pago probados con transacción y rollback | Contratos PostgreSQL de todas las acciones auxiliares y UI completa |
 | Equipo y permisos de colaboradores | Rutas aún bloqueadas en modo Supabase | Portar administración de equipo y permisos efectivos de escritura; no aceptar `grantId` hasta probarlos |
 | Borradores y recurrentes | APIs del propietario probadas por SQL/HTTP; se habilitan sólo en ensayo local | Integrar pantalla completa y permisos de colaboradores |
-| Reportes y supervisión | Rutas independientes aún bloqueadas | Portar `/api/expense-reports`, `/api/reports` y `/api/oversight` |
+| Reportes y supervisión | APIs del propietario, exportaciones y auditoría paginada verificadas | Integrar pantallas completas y revisar visualmente las descargas |
 | Importación Excel y preservación | Rutas independientes aún bloqueadas | Portar `/api/import-workbook` y rutas auxiliares de propiedades |
 | Eliminación de propiedad | Recreación de tombstones rechazada; DELETE todavía bloqueado | Portar borrado transaccional y conciliación de referencias/objetos |
 | Archivos | Storage pertenece a HU-61; rangos de páginas rechazados explícitamente | Resolver la dependencia de evidencia PDF/imagen y sus contratos; no simular archivos existentes |
@@ -314,3 +314,25 @@ Verificación realizada:
 Prueba reproducible: `scripts/migration/test-hu60-drafts.mjs` con `SUPABASE_CLI`, servidor local y opciones de ensayo; `--expect-disabled` verifica el bloqueo después de retirar opciones y reiniciar. La clave de firma comparte la configuración de la décima entrega y nunca se añade a variables públicas ni al repositorio.
 
 HU-60 sigue **En desarrollo**. La siguiente ruta pendiente en la matriz es reportes/supervisión; también faltan colaboradores, importación, eliminación e integración completa. Esta entrega cierra la verificación del bloque de borradores del propietario, no la historia completa.
+
+
+## Duodécima entrega · Reportes, exportaciones y supervisión
+
+13 de octubre de 2026. Se adaptaron `GET /api/oversight`, `GET/POST /api/expense-reports` y `POST /api/reports` al acceso PostgreSQL del propietario. Las rutas se habilitan sólo en entorno local con las opciones existentes y `REHAB_POSTGRES_REPORTS_PREVIEW=1`. Los motores `comparison`, `comparisonCSV`, `portfolioRows` y `propertyReport` permanecen compartidos con el backend anterior.
+
+Los cortes guardan una instantánea de cifras, clasificaciones y versiones. La transacción firmada verifica versiones de propiedad/libro, inserta corte y auditoría juntos y revierte ambos si falla el registro de auditoría. Un `requestId` estable permite recuperar el mismo corte al reintentar. La descarga HTML verifica también la base aprobada antes de registrar su auditoría; cada descarga genera un identificador de reporte y un evento nuevos, como el flujo anterior. No devuelve el archivo si falla esa auditoría. Mantiene CSP restrictiva y escape del motor de reportes.
+
+Las lecturas usan la sesión del usuario y RLS. La RPC de auditoría es SECURITY INVOKER y usa filtros parametrizados. Su cursor combina timestamp e ID; conserva la precisión original del timestamp y evita perder eventos empatados entre páginas. Continúa aceptando cursores históricos de timestamp. El servidor aplica la redacción existente de credenciales antes de responder. Las consultas de colaboradores siguen rechazándose mientras sus permisos estén pendientes.
+
+Migración `20261013223342_hu60_reports.sql`, generada con `db pull --local` después de aplicar SQL y ejecutar advisors sin incidencias.
+
+Evidencia:
+
+- **43 comprobaciones HTTP**: 18 nuevas de reportes/supervisión y 25 regresiones de propiedades/presupuesto/contabilidad. Incluyen equivalencia de partidas/importes con el motor, CSV y HTML, inmutabilidad histórica, aislamiento, reintentos, versiones, rollback y 102 eventos de auditoría con fecha idéntica sin omisiones. La comparación de resultados excluye únicamente IDs aleatorios nuevos y normaliza `-0` conforme a JSON.
+- **140 comprobaciones SQL locales y 140 de reconstrucción**, incluidas 12 nuevas de cortes, auditoría, identidad, versiones y paginación.
+- **20 suites de lógica/contratos simulados**, TypeScript y build aprobados. Ensayo HU-59 de 20 tablas/20 filas con repetición, conciliación, rollback y restauración aprobado.
+- Opciones y clave temporal retiradas al terminar; cuatro comprobaciones HTTP verifican 503 en las nuevas rutas desactivadas. Los datos/cuentas de prueba se eliminan en `finally`. La clave temporal no aparece en el build.
+
+Reproducción: `scripts/migration/test-hu60-reports.mjs` con `SUPABASE_CLI` y servidor/configuración de ensayo local; `--expect-disabled` después de retirar opciones y reiniciar. Las pruebas verifican contenido y cabeceras HTTP; revisión visual del HTML/PDF impreso pendiente.
+
+HU-60 permanece En desarrollo. Los siguientes pendientes de backend son equipo/colaboradores, importación Excel, eliminación y auxiliares de propiedades; también quedan integración completa, archivos y validaciones con datos migrados reales.
